@@ -179,6 +179,7 @@ class Ui_Form(object):
         self.verticalLayout_2.addLayout(self.horizontalLayout)
 
         self.retranslateUi(Form)
+        self.exitPushButton.clicked.connect(Form.close)
         QtCore.QMetaObject.connectSlotsByName(Form)
 
     def retranslateUi(self, Form):

@@ -369,5 +369,22 @@
   </layout>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>exitPushButton</sender>
+   <signal>clicked()</signal>
+   <receiver>Form</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>540</x>
+     <y>422</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>593</x>
+     <y>427</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

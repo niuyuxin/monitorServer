@@ -6,6 +6,7 @@ from PyQt5.QtCore import *
 
 
 class TcpServer(QObject):
+    getAllSubDev = pyqtSignal(list)
     def __init__(self):
         super().__init__()
         self.tcpServer = QTcpServer()
@@ -22,7 +23,8 @@ class TcpServer(QObject):
             socket.readyRead.connect(self.onReadyToRead)
             socket.disconnected.connect(self.onSocketDisconnect)
             self.socketList.append(socket)
-            socket.write(QByteArray(bytes("Hello, New tcpSocket...", encoding="UTF-8")))
+            b = QByteArray(bytes(r"Hello, New tcpSocket...socketDescriptor = {}".format(socket.peerAddress().toString()), encoding="UTF-8"))
+            socket.write(b)
     def onSocketDisconnect(self):
         socket = self.sender()
         socket.deleteLater()
@@ -31,5 +33,8 @@ class TcpServer(QObject):
         for socket in self.socketList:
             if socket.isValid and socket.bytesAvailable():
                 d = socket.readAll()
-                print(str(d, encoding='utf-8'))
-                socket.write(d)
+                d = str(d, encoding='utf-8')
+                if '[' in d:
+                    li = eval(d)
+                self.getAllSubDev.emit(li)
+                socket.write(QByteArray(bytes(d, encoding='utf-8')))
