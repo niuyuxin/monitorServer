@@ -3,31 +3,94 @@
 
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
+from PyQt5.QtGui import *
+
+class DevInforWidget(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("information widget")
+        self.setFocus(Qt.MouseFocusReason)
+        self.setMouseTracking(True)
+        self.devNameLabel = QLabel("设备名称")
+        self.layout = QVBoxLayout()
+        self.layout.addWidget(self.devNameLabel)
+        self.setLayout(self.layout)
+        self.layout.setContentsMargins(0,0,0,0)
+        self.hide()
+    def showEvent(self, QShowEvent):
+        try:
+            width = qApp.desktop().screenGeometry().width()
+            height = qApp.desktop().screenGeometry().height()
+            if QCursor.pos().x() + self.frameGeometry().width() > width:
+                self.move(QCursor.pos() - QPoint(self.frameGeometry().width(), self.frameGeometry().height()))
+            elif QCursor.pos().y() + self.frameGeometry().height() > height:
+                self.move(QCursor.pos()-QPoint(self.frameGeometry().width(), self.frameGeometry().height()))
+            else:
+                self.move(QCursor.pos())
+        except Exception as e:
+            print(str(e))
+    # def leaveEvent(self, QEvent): # Fixme: it doesn't work.
+    #     self.hide()
+    #     print(">>>")
+    def focusOutEvent(self, QFocusEvent): # Fixme: when widget lost focus, hide it.
+        self.hide()
 
 class SubDevDataWidget(QTableWidget):
     def __init__(self, row = [], column = [], parent = None):
         super().__init__(parent)
+        self.devInformationWidget = DevInforWidget()
+        self.mouseInRow = -1
+        self.mouseInColumn = 0
         self.setColumnCount(len(column))
         self.setRowCount(len(row))
-        upCheckBox = QCheckBox("上")
-        downCheckBox = QCheckBox("下")
-        widget = QWidget()
-        layout = QHBoxLayout()
-        layout.addWidget(upCheckBox)
-        layout.addWidget(downCheckBox)
-        widget.setLayout(layout)
-        widget.showFullScreen()
-        self.setCellWidget(0, 3, widget)
         self.horizontalHeader().setStyleSheet("QHeaderView::section{background:skyblue;}")
         self.setHorizontalHeaderLabels(column)
         self.setVerticalHeaderLabels(row)
-        self.setAutoScroll(False)
+        try: # try to create sub contents
+            for i in range(len(row)):
+                upCheckBox = QCheckBox("上限")
+                downCheckBox = QCheckBox("下限")
+                widget = QWidget()
+                layout = QHBoxLayout()
+                layout.addWidget(upCheckBox)
+                layout.addWidget(downCheckBox)
+                layout.setContentsMargins(0, 0, 0, 0)
+                layout.setAlignment(Qt.AlignHCenter)
+                widget.setLayout(layout)
+                self.setCellWidget(i, 3, widget)
+                for c in range(3):
+                    tableWidgetItem = QTableWidgetItem()
+                    tableWidgetItem.setText("None")
+                    self.setItem(i, c, tableWidgetItem)
+        except Exception as e:
+            print(str(e))
+        # attribute setting, read code...
         self.setFrameShape(QFrame.NoFrame)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.setMouseTracking(True) # should turn on mouse tracking when user cell entered
+        self.cellEntered.connect(self.onCellEntered)
+        # tigger informatin display
+        self.triggerInfoDisplayTimer = QTimer()
+        self.triggerInfoDisplayTimer.timeout.connect(self.onTriggerInfoDisplayTimerTimeout)
+
+    def onCellEntered(self, row, column):
+        if row != self.mouseInRow:
+            self.triggerInfoDisplayTimer.start(1000)
+            self.devInformationWidget.hide()
+            self.mouseInRow = row
+    def enterEvent(self, *args, **kwargs):
+        pass # print("enter")
+    def leaveEvent(self, *args, **kwargs):
+        if not self.devInformationWidget.frameGeometry().contains(QCursor.pos()):
+            self.devInformationWidget.hide()
+        self.triggerInfoDisplayTimer.stop()
+    def onTriggerInfoDisplayTimerTimeout(self):
+        self.triggerInfoDisplayTimer.stop()
+        self.devInformationWidget.show()
 class DevDataWidget(QWidget):
     def __init__(self, subDevList = [], parent = None):
         super().__init__(parent)
