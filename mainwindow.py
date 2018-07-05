@@ -25,8 +25,9 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
         # create tcp server, main function...
         self.tcpServer = TcpServer()
         self.tcpServer.getAllSubDev.connect(self.onTcpServerGetAllSubDev)
-        self.contentFrameLayout = QVBoxLayout()
+        self.contentFrameLayout = QHBoxLayout()
         self.contentFrame.setLayout(self.contentFrameLayout)
+        # self.contentFrameLayout.setContentsMargins(0,0,0,0)
         # create Device Data Widget
         self.devDataWidget = None
         self.devGraphicWidget = None
@@ -43,14 +44,13 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
             self.devDataWidget = DevDataWidget(subDev) # new widget
             self.contentFrameLayout.addWidget(self.devDataWidget)
             self.contentWidgetList.append(self.devDataWidget)
-            self.devGraphicWidget = DeviceGraphicWidget() # new widget
+            self.devGraphicWidget = DeviceGraphicWidget(subDev) # new widget
             self.contentFrameLayout.addWidget(self.devGraphicWidget)
             self.contentWidgetList.append(self.devGraphicWidget)
             self.devAutoRunningWidget = DeviceAutoRunningWidget() # new widget
             self.contentFrameLayout.addWidget(self.devAutoRunningWidget)
             self.contentWidgetList.append(self.devAutoRunningWidget)
-
-            self.showWidgetInContentWidget(index=0, widget=None)
+            self.showWidgetInContentWidget()
     def onDataShowingPushButtonClicked(self):
         if self.devDataWidget is not None:
             self.showWidgetInContentWidget(widget=self.devDataWidget)
