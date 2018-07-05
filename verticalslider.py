@@ -34,7 +34,7 @@ class VerticalSlider(QWidget):
         font = QFont(self.font())
         font.setPointSize(font.pointSize() - 1)
         fm = QFontMetricsF(font)
-        return QSize(VerticalSlider.XMARGIN*26+fm.height(), VerticalSlider.TOPMARGIN + fm.height()  * 10)
+        return QSize(VerticalSlider.XMARGIN*26+fm.height(), VerticalSlider.TOPMARGIN + fm.height()  * 15)
 
     def setFraction(self, actValue, maxValue=None):
         if maxValue is not None:

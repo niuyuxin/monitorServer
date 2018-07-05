@@ -7,16 +7,30 @@ from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from verticalslider import *
 
-class GraphicWidget(QWidget):
-    def __init__(self, parent = None):
+class GraphicWidget(QFrame):
+    def __init__(self, devName = None, parent = None):
         super().__init__(parent)
         try:
             verticalSlider = VerticalSlider(bottomLimit=10000, topLimit=90000, mValue=99999)
         except Exception as e:
             print(str(e))
-        layout = QHBoxLayout()
+        devNameLabel = QLabel(self.tr(devName))
+        speedNameLabel = QLabel(self.tr("速度:"))
+        speedLable = QLabel("****")
+        hLayout = QHBoxLayout()
+        speedLable.setBuddy(speedLable)
+        hLayout.addWidget(speedNameLabel)
+        hLayout.addWidget(speedLable)
+        layout = QVBoxLayout()
+        layout.addWidget(devNameLabel, alignment=Qt.AlignHCenter)
+        layout.addLayout(hLayout)
         layout.addWidget(verticalSlider)
         self.setLayout(layout)
+        self.setFrameShape(QFrame.Box)
+    def leaveEvent(self, *args, **kwargs):
+        print("leave event")
+    def enterEvent(self, *args, **kwargs):
+        print("enter event")
 class DeviceGraphicWidget(QWidget):
     def __init__(self, subDevList = [], parent = None):
         super().__init__(parent)
@@ -28,7 +42,7 @@ class DeviceGraphicWidget(QWidget):
             if column > 10:
                 column = 0
                 row += 1
-            gWidget = GraphicWidget()
+            gWidget = GraphicWidget(subDev)
             self.scrollLayout.addWidget(gWidget, row, column)
             column += 1
 
