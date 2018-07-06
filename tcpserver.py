@@ -27,6 +27,7 @@ class TcpServer(QObject):
                           Config.MonitorHoldDevice:None,
                           Config.MonitorName:None}
             self.socketList.append(socketDict)
+            print("socket accpet ", socket)
             b = QByteArray(bytes(r"Hello, New tcpSocket...socketDescriptor = {}".format(socket.peerAddress().toString()), encoding="UTF-8"))
             socket.write(b)
     def onSocketDisconnect(self):
@@ -35,13 +36,14 @@ class TcpServer(QObject):
         for s in self.socketList:
             if s[Config.MonitorSocket] == socket:
                 self.socketList.pop(count)
+                print("delete socket name", socket)
             count += 1
         socket.deleteLater()
     def onReadyToRead(self):
         for socketDict in self.socketList:
             if socketDict[Config.MonitorSocket].isValid and socketDict[Config.MonitorSocket].bytesAvailable():
+                data = socketDict[Config.MonitorSocket].readAll()
                 if socketDict[Config.MonitorId] is None:
-                    data = socketDict[Config.MonitorSocket].readAll()
                     dataDict = self.checkData(data)
                     if isinstance(dataDict, dict) and Config.MonitorId in dataDict.keys():
                         socketDict[Config.MonitorId] = dataDict.get(Config.MonitorId)
@@ -51,6 +53,8 @@ class TcpServer(QObject):
                         socketDict[Config.MonitorSocket].write(data)
                     else:
                         socketDict[Config.MonitorSocket].disconnectFromHost()
+                else:
+                    socketDict[Config.MonitorSocket].write(data)
 
     def checkData(self, data):
         di = eval(str(data, encoding='utf-8'))
