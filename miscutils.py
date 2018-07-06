@@ -1,10 +1,42 @@
 #!/usr/bin/env python3
-# -*- conding:utf-8 -*-
 
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
 
+class DeviceInfoWidget(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle(self.tr("设备详细信息"))
+        self.setFocus(Qt.MouseFocusReason)
+        self.setMouseTracking(True)
+        self.deviceNameLabel = QLabel("***")
+        self.deviceInfoLabel = QLabel("\n\n\n\ntext you what want to show in this widget...\n\n\n\n\n")
+        self.layout = QVBoxLayout()
+        self.layout.addWidget(self.deviceNameLabel, alignment=(Qt.AlignHCenter|Qt.AlignTop))
+        self.layout.addWidget(self.deviceInfoLabel)
+        self.setLayout(self.layout)
+        self.layout.setContentsMargins(0,0,0,0)
+        self.hide()
+    def showEvent(self, QShowEvent):
+        try:
+            width = qApp.desktop().screenGeometry().width()
+            height = qApp.desktop().screenGeometry().height()
+            if QCursor.pos().x() + self.frameGeometry().width() > width:
+                self.move(QCursor.pos() - QPoint(self.frameGeometry().width(), self.frameGeometry().height()))
+            elif QCursor.pos().y() + self.frameGeometry().height() > height:
+                self.move(QCursor.pos()-QPoint(self.frameGeometry().width(), self.frameGeometry().height()))
+            else:
+                self.move(QCursor.pos())
+        except Exception as e:
+            print(str(e))
+    # def leaveEvent(self, QEvent): # Fixme: it doesn't work.
+    #     self.hide()
+    #     print(">>>")
+    def focusOutEvent(self, QFocusEvent): # Fixme: when widget lost focus, hide it.
+        self.hide()
+    def onDeviceInformation(self, device): # Fixme, the type of device should be 'subDev' type, to do define it.
+        self.deviceNameLabel.setText(device)
 
 class VerticalSlider(QWidget):
     XMARGIN = 5
@@ -51,15 +83,15 @@ class VerticalSlider(QWidget):
         self.update()
         self.updateGeometry()
 
-    def mousePressEvent(self, event):
-        if event.button() == Qt.LeftButton:
-            self.moveSlider(event.y())
-            event.accept()
-        else:
-            QWidget.mousePressEvent(self, event)
+    # def mousePressEvent(self, event):
+    #     if event.button() == Qt.LeftButton:
+    #         self.moveSlider(event.y())
+    #         event.accept()
+    #     else:
+    #         QWidget.mousePressEvent(self, event)
 
-    def mouseMoveEvent(self, event):
-        self.moveSlider(event.y())
+    # def mouseMoveEvent(self, event):
+    #     self.moveSlider(event.y())
 
     def moveSlider(self, x):
         span = self.height() - VerticalSlider.TOPMARGIN - VerticalSlider.BOTTOMMARGIN

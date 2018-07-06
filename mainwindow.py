@@ -32,29 +32,65 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
         self.devDataWidget = None
         self.devGraphicWidget = None
         self.devAutoRunningWidget  = None
+        self.monitorSubDevDict = {}
         self.contentWidgetList = []
+        # Todo: get local device of monitor
+        # self.getLocalDevice()
         # push button signal and slots
         self.dataShowingPushButton.clicked.connect(self.onDataShowingPushButtonClicked)
         self.graphicShowingPushButton.clicked.connect(self.onGraphicShowingPushButtonClicked)
         self.autoRunningPushButton.clicked.connect(self.onAutoRunningPushButtonClicked)
     def onRtcTimeout(self):
         self.timeLabel.setText(QDateTime.currentDateTime().toString("yyyy-MM-dd hh:mm:ss"))
-    def onTcpServerGetAllSubDev(self, subDev):
-        if self.devDataWidget is None:
-            self.devDataWidget = DevDataWidget(subDev) # new widget
-            self.contentFrameLayout.addWidget(self.devDataWidget)
-            self.contentWidgetList.append(self.devDataWidget)
-            self.devGraphicWidget = DeviceGraphicWidget(subDev) # new widget
-            self.contentFrameLayout.addWidget(self.devGraphicWidget)
-            self.contentWidgetList.append(self.devGraphicWidget)
-            self.devAutoRunningWidget = DeviceAutoRunningWidget() # new widget
-            self.contentFrameLayout.addWidget(self.devAutoRunningWidget)
-            self.contentWidgetList.append(self.devAutoRunningWidget)
-            self.showWidgetInContentWidget()
+    def getLocalDevice(self):
+        monitorName = "TouchScreen"
+        devList  = ["设备{}".format(i) for i in range(20)]
+
+        self.monitorSubDevDict.setdefault(monitorName, devList)
+        self.devDataWidget = DevDataWidget(devList)  # new widget
+        self.contentFrameLayout.addWidget(self.devDataWidget)
+        self.contentWidgetList.append(self.devDataWidget)
+        self.devGraphicWidget = DeviceGraphicWidget(devList)  # new widget
+        self.contentFrameLayout.addWidget(self.devGraphicWidget)
+        self.contentWidgetList.append(self.devGraphicWidget)
+        self.devAutoRunningWidget = DeviceAutoRunningWidget()  # new widget
+        self.contentFrameLayout.addWidget(self.devAutoRunningWidget)
+        self.contentWidgetList.append(self.devAutoRunningWidget)
+        self.showWidgetInContentWidget()
+
+    def onTcpServerGetAllSubDev(self, monitorName, subDev):
+        if self.monitorSubDevDict.get(monitorName) == subDev:
+            return
+        if self.monitorSubDevDict.get(monitorName) is None:
+            self.monitorSubDevDict.setdefault(monitorName, subDev)
+        else:
+            self.monitorSubDevDict[monitorName] = subDev
+        print("some thing changed...")
+        allDevice = []
+        for key in self.monitorSubDevDict.keys():
+            for dev in self.monitorSubDevDict[key]:
+                allDevice.append(dev)
+        if self.devDataWidget is not None:
+            self.contentWidgetList.remove(self.devDataWidget)
+            self.contentFrameLayout.removeWidget(self.devDataWidget)
+            self.devDataWidget.deleteLater()
+        if self.devGraphicWidget is not None:
+            self.contentWidgetList.remove(self.devGraphicWidget)
+            self.contentFrameLayout.removeWidget(self.devGraphicWidget)
+            self.devGraphicWidget.deleteLater()
+
+        self.devDataWidget = DevDataWidget(allDevice)  # new widget
+        self.contentFrameLayout.addWidget(self.devDataWidget)
+        self.contentWidgetList.append(self.devDataWidget)
+
+        self.devGraphicWidget = DeviceGraphicWidget(allDevice)  # new widget
+        self.contentFrameLayout.addWidget(self.devGraphicWidget)
+        self.contentWidgetList.append(self.devGraphicWidget)
+        self.showWidgetInContentWidget(widget=self.devDataWidget)
+
     def onDataShowingPushButtonClicked(self):
         if self.devDataWidget is not None:
             self.showWidgetInContentWidget(widget=self.devDataWidget)
-            pass
     def onGraphicShowingPushButtonClicked(self):
         self.showWidgetInContentWidget(widget=self.devGraphicWidget)
     def onAutoRunningPushButtonClicked(self):
