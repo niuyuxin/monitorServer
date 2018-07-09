@@ -57,7 +57,7 @@ class SubDevDataWidget(QTableWidget):
 
     def onCellEntered(self, row, column):
         if row != self.mouseInRow:
-            self.triggerInfoDisplayTimer.start(1000)
+            self.triggerInfoDisplayTimer.start(3000)
             self.showDeviceInfo.emit(self.subDeviceList[row])
             self.devInformationWidget.hide()
             self.mouseInRow = row
@@ -84,7 +84,7 @@ class DevDataWidget(QWidget):
         perSubWidgetDevNumber = len(subDevList) // 4
         if len(subDevList) % 4 != 0:
             perSubWidgetDevNumber += 1
-        print(len(subDevList), perSubWidgetDevNumber)
+        # print(len(subDevList), perSubWidgetDevNumber)
         for dev in subDevList:
             if count % perSubWidgetDevNumber == 0:
                 if len(row) != 0:

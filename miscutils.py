@@ -166,12 +166,17 @@ class VerticalSlider(QWidget):
         painter.drawText(rect, Qt.AlignCenter, "{}mm".format(self.actValue))
         rect.moveCenter(QPointF(x + 55, (topLimitPercent * span) + VerticalSlider.TOPMARGIN))
         painter.drawText(rect, Qt.AlignCenter, "{}:{}".format(self.tr("上软限"), int(self.topLimit)))
-        rect.moveCenter(QPointF(VerticalSlider.XMARGIN*5, VerticalSlider.TOPMARGIN - 10))
-        painter.drawText(rect, Qt.AlignCenter, self.tr("限位开关"))
+
+        rect.moveCenter(QPointF(VerticalSlider.XMARGIN*6, VerticalSlider.TOPMARGIN - 10))
+        if self.actValue == self.maxValue:
+            painter.fillRect(rect, QBrush(Qt.red))
+        painter.drawText(rect, Qt.AlignCenter, self.tr("上限位开关"))
         rect.moveCenter(QPointF(x + 55, (bottomLimitPercent * span) + VerticalSlider.TOPMARGIN))
         painter.drawText(rect, Qt.AlignCenter, "{}:{}".format(self.tr("下软限"), int(self.bottomLimit)))
-        rect.moveCenter(QPointF(VerticalSlider.XMARGIN*5, span + VerticalSlider.TOPMARGIN + 10))
-        painter.drawText(rect, Qt.AlignCenter, self.tr("限位开关"))
+        rect.moveCenter(QPointF(VerticalSlider.XMARGIN*6, span + VerticalSlider.TOPMARGIN + 10))
+        if self.actValue == 0:
+            painter.fillRect(rect, QBrush(Qt.red))
+        painter.drawText(rect, Qt.AlignCenter, self.tr("下限位开关"))
 
         if self.actValue > self.topLimit:
             painter.setPen(QColor(Qt.red))  # draw cylinder

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>588</width>
-    <height>501</height>
+    <width>709</width>
+    <height>510</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -207,12 +207,12 @@
         </property>
         <property name="minimumSize">
          <size>
-          <width>60</width>
-          <height>80</height>
+          <width>0</width>
+          <height>0</height>
          </size>
         </property>
         <property name="frameShape">
-         <enum>QFrame::StyledPanel</enum>
+         <enum>QFrame::Box</enum>
         </property>
         <property name="text">
          <string>运行模式</string>
@@ -229,9 +229,9 @@
         </property>
         <layout class="QHBoxLayout" name="horizontalLayout_2">
          <item>
-          <widget class="QPushButton" name="arrangeFieldPushButton">
+          <widget class="QPushButton" name="organizedPlayPushButton">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+            <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>

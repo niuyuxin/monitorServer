@@ -76,7 +76,7 @@ class DeviceGraphicWidget(QWidget):
 
     def onGraphicWidgetIndex(self, index):
         if index != -1:
-            self.showDeviceInfoTimer.start(1000)
+            self.showDeviceInfoTimer.start(3000)
             self.showDeviceInformation.emit(self.subDevList[index])
         else:
             if not self.deviceInfoWidget.frameGeometry().contains(QCursor.pos()):

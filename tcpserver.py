@@ -28,7 +28,7 @@ class TcpServer(QObject):
                           Config.MonitorName:None}
             self.socketList.append(socketDict)
             print("socket accpet ", socket)
-            b = QByteArray(bytes(r"Hello, New tcpSocket...socketDescriptor = {}".format(socket.peerAddress().toString()), encoding="UTF-8"))
+            b = QByteArray(bytes(r"Hello, New tcpSocket... \n socket IpV4 = {}".format(socket.peerAddress().toString()), encoding="UTF-8"))
             socket.write(b)
     def onSocketDisconnect(self):
         socket = self.sender()

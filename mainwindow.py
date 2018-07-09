@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
-
+import sys
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from ui import ui_mainwindow
@@ -9,7 +9,7 @@ from tcpserver import TcpServer
 from devicedatawidget import  DevDataWidget
 from deviceautorunningwidget import DeviceAutoRunningWidget
 from devicegraphicwidget import  DeviceGraphicWidget
-
+from organizedplay import OrganizedPlay
 
 class MainWindow(QWidget, ui_mainwindow.Ui_Form):
     def __init__(self, parent=None):
@@ -35,14 +35,16 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
         self.monitorSubDevDict = {}
         self.contentWidgetList = []
         # Todo: get local device of monitor
-        # self.getLocalDevice()
+        self.getLocalDevice()
         # push button signal and slots
         self.dataShowingPushButton.clicked.connect(self.onDataShowingPushButtonClicked)
         self.graphicShowingPushButton.clicked.connect(self.onGraphicShowingPushButtonClicked)
         self.autoRunningPushButton.clicked.connect(self.onAutoRunningPushButtonClicked)
+        self.organizedPlayPushButton.clicked.connect(self.onOrganizedPlayPushButtonClicked)
     def onRtcTimeout(self):
         self.timeLabel.setText(QDateTime.currentDateTime().toString("yyyy-MM-dd hh:mm:ss"))
     def getLocalDevice(self):
+        # Todo: get local device of monitor
         monitorName = "TouchScreen"
         devList  = ["设备{}".format(i) for i in range(20)]
 
@@ -78,7 +80,6 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
             self.contentWidgetList.remove(self.devGraphicWidget)
             self.contentFrameLayout.removeWidget(self.devGraphicWidget)
             self.devGraphicWidget.deleteLater()
-
         self.devDataWidget = DevDataWidget(allDevice)  # new widget
         self.contentFrameLayout.addWidget(self.devDataWidget)
         self.contentWidgetList.append(self.devDataWidget)
@@ -86,6 +87,7 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
         self.devGraphicWidget = DeviceGraphicWidget(allDevice)  # new widget
         self.contentFrameLayout.addWidget(self.devGraphicWidget)
         self.contentWidgetList.append(self.devGraphicWidget)
+
         self.showWidgetInContentWidget(widget=self.devDataWidget)
 
     def onDataShowingPushButtonClicked(self):
@@ -95,10 +97,17 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
         self.showWidgetInContentWidget(widget=self.devGraphicWidget)
     def onAutoRunningPushButtonClicked(self):
         self.showWidgetInContentWidget(widget=self.devAutoRunningWidget)
+    def onOrganizedPlayPushButtonClicked(self):
+        try:
+            organizedPlay = OrganizedPlay()
+            organizedPlay.exec_()
+        except Exception as e:
+            print(str(e))
     def showWidgetInContentWidget(self, index = 0, widget = None):
         for w in self.contentWidgetList:
             w.hide()
         if widget is None:
+            print("widget is none")
             if len(self.contentWidgetList) != 0:
                 self.contentWidgetList[0].show()
         else:
