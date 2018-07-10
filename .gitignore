@@ -1,5 +1,6 @@
 __pycache__/*
 ui/__pycache__/*
+rcc/__pycache__/*
 *.db
 *.ini
 .idea/*
