@@ -43,6 +43,8 @@ class TcpServer(QObject):
         for socketDict in self.socketList:
             if socketDict[Config.MonitorSocket].isValid and socketDict[Config.MonitorSocket].bytesAvailable():
                 data = socketDict[Config.MonitorSocket].readAll()
+                if len(data) > 1472:
+                    print("[waring] Getting data of size is: ", len(data))
                 if socketDict[Config.MonitorId] is None:
                     dataDict = self.checkData(data)
                     if isinstance(dataDict, dict) and Config.MonitorId in dataDict.keys():

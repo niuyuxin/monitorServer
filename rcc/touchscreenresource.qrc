@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="images">
     <file>images/dirpic.jpg</file>
+    <file>images/opendirpic.jpg</file>
   </qresource>
 </RCC>
