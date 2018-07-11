@@ -20,6 +20,7 @@ if __name__ == "__main__":
                             "Maybe you lost style sheet file for this Application",
                             QMessageBox.Ok)
     mainWindow = MainWindow()
+    mainWindow.setWindowTitle("MonitorServer")
     mainWindow.show()
 
     app.exec_()

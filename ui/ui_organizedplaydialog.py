@@ -118,7 +118,7 @@ class Ui_organizedPlayDialog(object):
 
     def retranslateUi(self, organizedPlayDialog):
         _translate = QtCore.QCoreApplication.translate
-        organizedPlayDialog.setWindowTitle(_translate("organizedPlayDialog", "Dialog"))
+        organizedPlayDialog.setWindowTitle(_translate("organizedPlayDialog", "编场"))
         self.tipsLabel.setText(_translate("organizedPlayDialog", "tips ..."))
         self.groupBox.setTitle(_translate("organizedPlayDialog", "GroupBox"))
         self.label.setText(_translate("organizedPlayDialog", "场景数量："))

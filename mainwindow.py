@@ -100,9 +100,9 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
     def onOrganizedPlayPushButtonClicked(self):
         try:
             organizedPlay = OrganizedPlay(subDevDict=self.monitorSubDevDict)
-            print("organized", organizedPlay.exec_())
+            print("organizedPlay exit code:", organizedPlay.exec_())
         except Exception as e:
-            print(str(e))
+            print("create organized play error", str(e))
     def showWidgetInContentWidget(self, index = 0, widget = None):
         for w in self.contentWidgetList:
             w.hide()
