@@ -17,7 +17,9 @@ class TcpServer(QObject):
         else:
             self.tcpServer.newConnection.connect(self.onNewConnection)
             print("listen successful")
+    @pyqtSlot()
     def onNewConnection(self):
+        while True:pass
         if self.tcpServer.hasPendingConnections():
             socket = self.tcpServer.nextPendingConnection()
             socket.readyRead.connect(self.onReadyToRead)

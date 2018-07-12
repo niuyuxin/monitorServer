@@ -23,5 +23,5 @@ if __name__ == "__main__":
     mainWindow.setWindowTitle("MonitorServer")
     mainWindow.show()
 
-    app.exec_()
+    sys.exit(app.exec_())
 

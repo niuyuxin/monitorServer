@@ -10,8 +10,10 @@ from devicedatawidget import  DevDataWidget
 from deviceautorunningwidget import DeviceAutoRunningWidget
 from devicegraphicwidget import  DeviceGraphicWidget
 from organizedplay import OrganizedPlay
+from database import DataBase
 
 class MainWindow(QWidget, ui_mainwindow.Ui_Form):
+    getMonitorDevice = pyqtSignal(str, list)
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
@@ -22,9 +24,20 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
         self.rtc.timeout.connect(self.onRtcTimeout)
         self.onRtcTimeout()
         self.rtc.start(1000)
+
+        # create mysql database
+        self.dataBase = DataBase()
+        self.dataBaseThread = QThread()
+        self.dataBase.moveToThread(self.dataBaseThread)
+        self.getMonitorDevice.connect(self.dataBase.createDevicesInfo)
+        self.dataBaseThread.start()
         # create tcp server, main function...
         self.tcpServer = TcpServer()
+        self.tcpServerThread = QThread()
+        self.tcpServer.moveToThread(self.tcpServerThread)
         self.tcpServer.getAllSubDev.connect(self.onTcpServerGetAllSubDev)
+        self.tcpServerThread.start()
+
         self.contentFrameLayout = QHBoxLayout()
         self.contentFrame.setLayout(self.contentFrameLayout)
         # self.contentFrameLayout.setContentsMargins(0,0,0,0)
@@ -41,6 +54,7 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
         self.graphicShowingPushButton.clicked.connect(self.onGraphicShowingPushButtonClicked)
         self.autoRunningPushButton.clicked.connect(self.onAutoRunningPushButtonClicked)
         self.organizedPlayPushButton.clicked.connect(self.onOrganizedPlayPushButtonClicked)
+
     def onRtcTimeout(self):
         self.timeLabel.setText(QDateTime.currentDateTime().toString("yyyy-MM-dd hh:mm:ss"))
     def getLocalDevice(self):
@@ -67,6 +81,7 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
             self.monitorSubDevDict.setdefault(monitorName, subDev)
         else:
             self.monitorSubDevDict[monitorName] = subDev
+        self.getMonitorDevice.emit(monitorName, subDev)
         print("some thing changed...")
         allDevice = []
         for key in self.monitorSubDevDict.keys():
