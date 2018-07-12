@@ -73,7 +73,7 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
         self.contentFrameLayout.addWidget(self.devAutoRunningWidget)
         self.contentWidgetList.append(self.devAutoRunningWidget)
         self.showWidgetInContentWidget()
-
+    @pyqtSlot(str, list)
     def onTcpServerGetAllSubDev(self, monitorName, subDev):
         if self.monitorSubDevDict.get(monitorName) == subDev:
             return

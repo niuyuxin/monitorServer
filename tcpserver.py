@@ -9,7 +9,7 @@ class TcpServer(QObject):
     getAllSubDev = pyqtSignal(str, list)
     def __init__(self):
         super().__init__()
-        self.tcpServer = QTcpServer()
+        self.tcpServer = QTcpServer(self)
         self.socketList = []
         if not self.tcpServer.listen(QHostAddress.AnyIPv4, 5000):
             print("listen error")
@@ -19,8 +19,7 @@ class TcpServer(QObject):
             print("listen successful")
     @pyqtSlot()
     def onNewConnection(self):
-        while True:pass
-        if self.tcpServer.hasPendingConnections():
+        while self.tcpServer.hasPendingConnections():
             socket = self.tcpServer.nextPendingConnection()
             socket.readyRead.connect(self.onReadyToRead)
             socket.disconnected.connect(self.onSocketDisconnect)
@@ -32,6 +31,7 @@ class TcpServer(QObject):
             print("socket accpet ", socket)
             b = QByteArray(bytes(r"Hello, New tcpSocket... \n socket IpV4 = {}".format(socket.peerAddress().toString()), encoding="UTF-8"))
             socket.write(b)
+    @pyqtSlot()
     def onSocketDisconnect(self):
         socket = self.sender()
         count = 0
@@ -41,6 +41,7 @@ class TcpServer(QObject):
                 print("delete socket name", socket)
             count += 1
         socket.deleteLater()
+    @pyqtSlot()
     def onReadyToRead(self):
         for socketDict in self.socketList:
             if socketDict[Config.MonitorSocket].isValid and socketDict[Config.MonitorSocket].bytesAvailable():

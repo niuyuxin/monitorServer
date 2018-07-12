@@ -97,7 +97,7 @@ class DataBase(QObject):
     def searchDeviceSet(self):pass
     def changeDeviceSet(self):pass
 
-    # @pyqtSlot(str, list)
+    @pyqtSlot(str, list)
     def createDevicesInfo(self, monitorName, devices):
         # i = 0
         # while True:
