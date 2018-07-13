@@ -1,18 +1,19 @@
 #!/usr/bin/env python
 # -*- coding:utf8 -*-
 
-from PyQt5.QtSql import QSqlQuery, QSqlDatabase
+from PyQt5.QtSql import QSqlQuery, QSqlDatabase, QSqlRecord
 from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
 from PyQt5.QtNetwork import QHostAddress
 
 class DataBaseException(Exception):pass
 class DataBase(QObject):
     dataBaseName = "TouchScreen.db"
-    dataBaseVersion = "180712"
+    dataBaseVersion = "180714"
     DeviceInfoTable = "DeviceInfo"
     PlayInfoTable = "PlayInfo"
     SceneInfoTable = "SceneInfo"
     DeviceSetInfoTable = "DeviceSetInfo"
+    databaseState = pyqtSignal(bool)
     def __init__(self, parent = None):
         super().__init__(parent)
         self.dataBase = QSqlDatabase.addDatabase("QSQLITE")
@@ -50,40 +51,52 @@ class DataBase(QObject):
                                 id INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE NOT NULL,
                                 name VARCHAR NOT NULL,
                                 devGroup VARCHAR NOT NULL,
-                                devIndex INTEGER NOT NULL,
+                                selfIndex INTEGER NOT NULL,
                                 currentPos INTEGER,
                                 upLimitedPos INTEGER,
                                 downLimitedPos INTEGER,
                                 zeroPos INTEGER,
                                 mutexDev INTEGER)""")
-        print(ret)
         ret = sqlQuery.exec_("""CREATE TABLE IF NOT EXISTS {tableName} (
                                 id INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE NOT NULL,
+                                selfIndex VARCHAR NOT NULL,
                                 name VARCHAR NOT NULL,
                                 sceneIndex VARCHAR
                                 )""".format(tableName=DataBase.PlayInfoTable))
-        print(ret)
         ret = sqlQuery.exec_("""CREATE TABLE IF NOT EXISTS {tableName} (
                                 id INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE NOT NULL,
                                 name VARCHAR NOT NULL,
-                                index VARCHAR NOT NULL,
+                                selfIndex VARCHAR NOT NULL,
                                 deviceSetIndex VARCHAR
                                 )""".format(tableName=DataBase.SceneInfoTable))
-        print(ret)
         ret = sqlQuery.exec_("""CREATE TABLE IF NOT EXISTS {tableName} (
                                 id INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE NOT NULL,
-                                index VARCHAR NOT NULL,
+                                selfIndex VARCHAR NOT NULL,
                                 deviceIndex VARCHAR
                                 )""".format(tableName=DataBase.DeviceSetInfoTable))
-        print(ret)
-    def addPlays(self, table = "", item = dict()):
-        print("insertRecord", item)
+    def insertPlays(self, name, id):
+        sqlQuery = QSqlQuery(self.dataBase)
+        if sqlQuery.exec_("""SELECT selfIndex FROM PlayInfo"""):
+            while sqlQuery.next():
+                if sqlQuery.value(0) == id:
+                    ret = sqlQuery.exec_("UPDATE PlayInfo SET name='{n}' where selfIndex='{index}'"
+                                   .format(n=name, index=id))
+                    print("update Plays success", name, id)
+                    return
+            else:
+                insertStr = "INSERT INTO PlayInfo (name, selfIndex) VALUES ('{name}', '{id}')".format(name=name,id=id)
+                if sqlQuery.exec_(insertStr):
+                    print("insert Plays success", name, id)
+
+
     def rmPlays(self, table = "", item = dict()):
         print("select Record", item)
     def searchPlays(self):
         pass
-    def changePlays(self):
-        pass
+    def changePlays(self, name, id):
+        sqlQuery = QSqlQuery(self.dataBase)
+        if sqlQuery.exec_("UPDATE PlayInfo SET name={nn} where selfIndex={id}".format(nn=newName, id=id)):
+            print("insert success")
     def addScene(self):
         pass
     def rmScene(self):
@@ -96,36 +109,42 @@ class DataBase(QObject):
     def rmDeviceSet(self):pass
     def searchDeviceSet(self):pass
     def changeDeviceSet(self):pass
+    def getAllDevicesInfo(self, subDevDict):
+        sqlQuery = QSqlQuery("SELECT * FROM DeviceInfo", self.dataBase)
+        rec = sqlQuery.record()
+        nameCol = rec.indexOf("name")
+        groupCol = rec.indexOf("devGroup")
+        while sqlQuery.next():
+            devGroup = sqlQuery.value(groupCol)
+            if devGroup not in subDevDict.keys():
+                subDevDict[devGroup] = [sqlQuery.value(nameCol)]
+            else:
+                subDevDict[devGroup].append(sqlQuery.value(nameCol))
 
     @pyqtSlot(str, list)
-    def createDevicesInfo(self, monitorName, devices):
-        # i = 0
-        # while True:
-        #     print("database", i)
-        #     i += 1
-        print(monitorName, devices)
+    def onCreateDevicesInfo(self, monitorName, devices):
+        self.databaseState.emit(True)
         sqlQuery = QSqlQuery(self.dataBase)
         ret = self.rmDeviceInfo(item="devGroup", value=monitorName, sqlQuery=sqlQuery)
-        if not ret:
-            return
         count = 0
         for dev in devices:
-            insertStr = """INSERT INTO {tableName} (name, devIndex, devGroup) VALUES ('{name}', {index}, '{group}')"""\
-                        .format(tableName=DataBase.DeviceInfoTable, name=dev, index=count, group=monitorName)
-            print(insertStr)
-            print(sqlQuery.exec_(insertStr))
+            insertStr = """INSERT INTO DeviceInfo (name, selfIndex, devGroup) VALUES ('{name}', {index}, '{group}')"""\
+                        .format(name=dev, index=count, group=monitorName)
+            if not sqlQuery.exec_(insertStr):
+                print("[sqlQuery exec error]", insertStr)
             count += 1
+        print(self.tr("创建设备完成")+"{cur}/{all}" .format(cur=count, all=len(devices)))
+        self.databaseState.emit(False)
     def rmDeviceInfo(self, item, value, sqlQuery=None):
         if not sqlQuery:
             sqlQuery = QSqlQuery(self.dataBase)
         if isinstance(value, list):
             for v in value:
-                ret = sqlQuery.exec_("""DELETE FROM {table} WHERE {item} = {v}"""
+                ret = sqlQuery.exec_("""DELETE FROM {table} WHERE {item} = '{v}'"""\
                                .format(table=DataBase.DeviceInfoTable, item=item, v=v))
         else:
-            ret = sqlQuery.exec_("""DELETE FROM {table} WHERE {item} = '{v}'"""
+            ret = sqlQuery.exec_("""DELETE FROM {table} WHERE {item} = '{v}'"""\
                            .format(table=DataBase.DeviceInfoTable, item=item, v=value))
         return ret
     def searchDeviceInfo(self):pass
     def changeDeviceInfo(self):pass
-

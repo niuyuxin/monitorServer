@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>709</width>
-    <height>510</height>
+    <width>702</width>
+    <height>529</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -274,19 +274,6 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="recordPushButton">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string>记录</string>
-           </property>
-          </widget>
-         </item>
-         <item>
           <widget class="QPushButton" name="helpPushButton">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
@@ -342,6 +329,13 @@
         </size>
        </property>
       </spacer>
+     </item>
+     <item>
+      <widget class="QLabel" name="databaseLabel">
+       <property name="text">
+        <string>数据库</string>
+       </property>
+      </widget>
      </item>
      <item>
       <widget class="QLabel" name="internetLabel">

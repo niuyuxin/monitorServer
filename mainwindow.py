@@ -4,6 +4,7 @@
 import sys
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
+from PyQt5.QtGui import *
 from ui import ui_mainwindow
 from tcpserver import TcpServer
 from devicedatawidget import  DevDataWidget
@@ -24,12 +25,20 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
         self.rtc.timeout.connect(self.onRtcTimeout)
         self.onRtcTimeout()
         self.rtc.start(1000)
+        # create Device Data Widget
+        self.devDataWidget = None
+        self.devGraphicWidget = None
+        self.devAutoRunningWidget  = None
+        self.monitorSubDevDict = {}
+        self.contentWidgetList = []
 
         # create mysql database
         self.dataBase = DataBase()
+        self.dataBase.getAllDevicesInfo(self.monitorSubDevDict)
+        self.dataBase.databaseState.connect(self.onDatabaseState)
         self.dataBaseThread = QThread()
         self.dataBase.moveToThread(self.dataBaseThread)
-        self.getMonitorDevice.connect(self.dataBase.createDevicesInfo)
+        self.getMonitorDevice.connect(self.dataBase.onCreateDevicesInfo)
         self.dataBaseThread.start()
         # create tcp server, main function...
         self.tcpServer = TcpServer()
@@ -41,14 +50,8 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
         self.contentFrameLayout = QHBoxLayout()
         self.contentFrame.setLayout(self.contentFrameLayout)
         # self.contentFrameLayout.setContentsMargins(0,0,0,0)
-        # create Device Data Widget
-        self.devDataWidget = None
-        self.devGraphicWidget = None
-        self.devAutoRunningWidget  = None
-        self.monitorSubDevDict = {}
-        self.contentWidgetList = []
         # Todo: get local device of monitor
-        self.getLocalDevice()
+        self.showAllDeviceInWidget()
         # push button signal and slots
         self.dataShowingPushButton.clicked.connect(self.onDataShowingPushButtonClicked)
         self.graphicShowingPushButton.clicked.connect(self.onGraphicShowingPushButtonClicked)
@@ -57,25 +60,10 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
 
     def onRtcTimeout(self):
         self.timeLabel.setText(QDateTime.currentDateTime().toString("yyyy-MM-dd hh:mm:ss"))
-    def getLocalDevice(self):
-        # Todo: get local device of monitor
-        monitorName = "TouchScreen"
-        devList  = ["设备{}".format(i) for i in range(20)]
-
-        self.monitorSubDevDict.setdefault(monitorName, devList)
-        self.devDataWidget = DevDataWidget(devList)  # new widget
-        self.contentFrameLayout.addWidget(self.devDataWidget)
-        self.contentWidgetList.append(self.devDataWidget)
-        self.devGraphicWidget = DeviceGraphicWidget(devList)  # new widget
-        self.contentFrameLayout.addWidget(self.devGraphicWidget)
-        self.contentWidgetList.append(self.devGraphicWidget)
-        self.devAutoRunningWidget = DeviceAutoRunningWidget()  # new widget
-        self.contentFrameLayout.addWidget(self.devAutoRunningWidget)
-        self.contentWidgetList.append(self.devAutoRunningWidget)
-        self.showWidgetInContentWidget()
     @pyqtSlot(str, list)
     def onTcpServerGetAllSubDev(self, monitorName, subDev):
         if self.monitorSubDevDict.get(monitorName) == subDev:
+            print("Got same monitor device!")
             return
         if self.monitorSubDevDict.get(monitorName) is None:
             self.monitorSubDevDict.setdefault(monitorName, subDev)
@@ -83,6 +71,8 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
             self.monitorSubDevDict[monitorName] = subDev
         self.getMonitorDevice.emit(monitorName, subDev)
         print("some thing changed...")
+        self.showAllDeviceInWidget()
+    def showAllDeviceInWidget(self):
         allDevice = []
         for key in self.monitorSubDevDict.keys():
             for dev in self.monitorSubDevDict[key]:
@@ -102,7 +92,6 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
         self.devGraphicWidget = DeviceGraphicWidget(allDevice)  # new widget
         self.contentFrameLayout.addWidget(self.devGraphicWidget)
         self.contentWidgetList.append(self.devGraphicWidget)
-
         self.showWidgetInContentWidget(widget=self.devDataWidget)
 
     def onDataShowingPushButtonClicked(self):
@@ -115,6 +104,7 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
     def onOrganizedPlayPushButtonClicked(self):
         try:
             organizedPlay = OrganizedPlay(subDevDict=self.monitorSubDevDict)
+            organizedPlay.insertPlays.connect(self.dataBase.insertPlays)
             print("organizedPlay exit code:", organizedPlay.exec_())
         except Exception as e:
             print("create organized play error", str(e))
@@ -126,3 +116,9 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
                 self.contentWidgetList[0].show()
         else:
             widget.show()
+
+    def onDatabaseState(self, s):
+        if s:
+            self.databaseLabel.setText("数据库忙")
+        else:
+            self.databaseLabel.setText("数据库闲")

@@ -7,11 +7,13 @@ from ui import ui_organizedplaydialog
 from config import *
 from rcc import rc_touchscreenresource
 from ui import ui_editingdevicedialog
+import random
 
 class PlaysListWidgetItem(QListWidgetItem):
-    def __init__(self, scenes, playName, QIcon, parent=None):
+    def __init__(self, id, scenes, playName, QIcon, parent=None):
         super().__init__(parent)
         self.setFlags(self.flags()|Qt.ItemIsEditable)
+        self.id = id
         self.setText(playName)
         self.setIcon(QIcon)
         self.scenes = scenes
@@ -206,6 +208,7 @@ class EditingSceneAction(QDialog):
     def onDeletePushButtonClicked(self):
         pass
 class OrganizedPlay(QDialog, ui_organizedplaydialog.Ui_organizedPlayDialog):
+    insertPlays = pyqtSignal(str, str)
     def __init__(self, subDevDict=None, parent=None):
         super().__init__(parent)
         self.setupUi(self)
@@ -216,6 +219,7 @@ class OrganizedPlay(QDialog, ui_organizedplaydialog.Ui_organizedPlayDialog):
         self.contentLayout = QVBoxLayout()
         self.contentListWidget = ListWidget()
         self.contentLayout.addWidget(self.contentListWidget)
+        playsCount = 0
         for i in range(200): # simulate reading data from database. create plays.
             icon = QIcon(":/images/images/dirpic.jpg")
             scenes={}
@@ -223,8 +227,10 @@ class OrganizedPlay(QDialog, ui_organizedplaydialog.Ui_organizedPlayDialog):
             for s in range(i+1):
                 count += 1
                 scenes[s] = [self.subDevDict["TouchScreen"][n] for n in range(0,100, count)]
-            item = PlaysListWidgetItem(scenes=scenes, playName=self.tr("剧目")+"{}".format(i), QIcon=icon)
+            id = QDateTime.currentDateTime().toString("yyyyMMddhhmmsszzz") + str(playsCount)
+            item = PlaysListWidgetItem(id=id, scenes=scenes, playName=self.tr("剧目")+"{}".format(i), QIcon=icon)
             self.contentListWidget.addItem(item)
+            playsCount += 1
         self.contentFrame.setLayout(self.contentLayout)
         # push button clicked and slots
         self.editingPushButton.clicked.connect(self.onEditingPushButtonClicked)
@@ -243,8 +249,7 @@ class OrganizedPlay(QDialog, ui_organizedplaydialog.Ui_organizedPlayDialog):
         self.contentListWidget.itemChanged.connect(self.onListWidgetItemChanged)
     def onListWidgetItemChanged(self, widget):
         self.contentListWidget.setSpacing(20)
-        print(widget.text())
-
+        self.insertPlays.emit(widget.text(), widget.id)
     def onEditingPushButtonClicked(self):
         playsItem = self.contentListWidget.currentItem()
         if playsItem is None:
@@ -268,8 +273,10 @@ class OrganizedPlay(QDialog, ui_organizedplaydialog.Ui_organizedPlayDialog):
                 scenes = {}
                 for s in range(new.sceneQuantitySpinBox.value()):
                     scenes[s]=[]
-                item = PlaysListWidgetItem(scenes=scenes, playName=new.nameLineEdit.text(),
+                id = QDateTime.currentDateTime().toString("yyyyMMddhhmmsszzz") + str(random.randint(0,100))
+                item = PlaysListWidgetItem(id=id, scenes=scenes, playName=new.nameLineEdit.text(),
                                       QIcon=QIcon(":/images/images/dirpic.jpg"))
+                self.insertPlays.emit(new.nameLineEdit.text(), id)
                 self.contentListWidget.addItem(item)
             except Exception as e:
                 print(str(e))

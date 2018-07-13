@@ -9,7 +9,7 @@ class TcpServer(QObject):
     getAllSubDev = pyqtSignal(str, list)
     def __init__(self):
         super().__init__()
-        self.tcpServer = QTcpServer(self)
+        self.tcpServer = QTcpServer(self) # should have parent
         self.socketList = []
         if not self.tcpServer.listen(QHostAddress.AnyIPv4, 5000):
             print("listen error")
@@ -43,33 +43,37 @@ class TcpServer(QObject):
         socket.deleteLater()
     @pyqtSlot()
     def onReadyToRead(self):
-        for socketDict in self.socketList:
-            if socketDict[Config.MonitorSocket].isValid and socketDict[Config.MonitorSocket].bytesAvailable():
-                data = socketDict[Config.MonitorSocket].readAll()
-                if len(data) > 1472:
-                    print("[waring] Getting data of size is: ", len(data))
-                if socketDict[Config.MonitorId] is None:
-                    dataDict = self.checkData(data)
-                    if isinstance(dataDict, dict) and Config.MonitorId in dataDict.keys():
+        socket = self.sender()
+        for s in self.socketList:
+            if s[Config.MonitorSocket] == socket:
+                socketDict = s
+                break
+        if not socketDict: return
+        while socket.bytesAvailable():
+            data = socket.readAll()
+            print("[waring] Getting data of size is: ", len(data))
+            try:
+                dataDict = eval(str(data, encoding="UTF-8"))
+                if not socketDict[Config.MonitorName] or not socketDict[Config.MonitorId]:
+                    if isinstance(dataDict, dict):
                         socketDict[Config.MonitorId] = dataDict.get(Config.MonitorId)
                         socketDict[Config.MonitorHoldDevice] = dataDict.get(Config.MonitorHoldDevice)
                         socketDict[Config.MonitorName] = dataDict.get(Config.MonitorName)
-                        self.analysisData(dataDict)
-                        socketDict[Config.MonitorSocket].write(data)
+                        allDevice = dataDict.get(Config.MonitorHoldDevice)
+                        monitorName = dataDict.get(Config.MonitorName)
+                        if allDevice and monitorName:
+                            self.getAllSubDev.emit(monitorName, allDevice)
+                        print(socketDict)
+                        # socket.write(data)
                     else:
-                        socketDict[Config.MonitorSocket].disconnectFromHost()
+                        socket.disconnectFromHost()
                 else:
-                    socketDict[Config.MonitorSocket].write(data)
+                    print(dataDict)
+                    socket.write(data)
+            except Exception as e:
+                print("error:", str(e))
+                socket.write(QByteArray(bytes("Hello", encoding="UTF-8")))
 
-    def checkData(self, data):
-        di = eval(str(data, encoding='utf-8'))
-        if isinstance(di, dict):
-            return di
-        else:
-            pass
     def analysisData(self, dataDict):
-            allDevice = dataDict.get(Config.MonitorHoldDevice)
-            monitorName = dataDict.get(Config.MonitorName)
-            if allDevice and monitorName:
-                self.getAllSubDev.emit(monitorName, allDevice)
+        pass
 
