@@ -15,6 +15,7 @@ from database import DataBase
 
 class MainWindow(QWidget, ui_mainwindow.Ui_Form):
     getMonitorDevice = pyqtSignal(str, list)
+    getPlaysInfo = pyqtSignal()
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
@@ -102,8 +103,9 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
     def onAutoRunningPushButtonClicked(self):
         self.showWidgetInContentWidget(widget=self.devAutoRunningWidget)
     def onOrganizedPlayPushButtonClicked(self):
+        plays = self.dataBase.searchPlays()
         try:
-            organizedPlay = OrganizedPlay(subDevDict=self.monitorSubDevDict)
+            organizedPlay = OrganizedPlay(plays=plays, subDevDict=self.monitorSubDevDict)
             organizedPlay.insertPlays.connect(self.dataBase.insertPlays)
             print("organizedPlay exit code:", organizedPlay.exec_())
         except Exception as e:

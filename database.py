@@ -8,7 +8,7 @@ from PyQt5.QtNetwork import QHostAddress
 class DataBaseException(Exception):pass
 class DataBase(QObject):
     dataBaseName = "TouchScreen.db"
-    dataBaseVersion = "180714"
+    dataBaseVersion = "180715.2"
     DeviceInfoTable = "DeviceInfo"
     PlayInfoTable = "PlayInfo"
     SceneInfoTable = "SceneInfo"
@@ -49,9 +49,9 @@ class DataBase(QObject):
                     "VALUES ({ver}, 'Initialization version')".format(ver=DataBase.dataBaseVersion))
         ret = sqlQuery.exec_("""CREATE TABLE IF NOT EXISTS DeviceInfo (
                                 id INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE NOT NULL,
-                                name VARCHAR NOT NULL,
+                                devName VARCHAR NOT NULL,
                                 devGroup VARCHAR NOT NULL,
-                                selfIndex INTEGER NOT NULL,
+                                selfIndex VARCHAR NOT NULL,
                                 currentPos INTEGER,
                                 upLimitedPos INTEGER,
                                 downLimitedPos INTEGER,
@@ -60,31 +60,31 @@ class DataBase(QObject):
         ret = sqlQuery.exec_("""CREATE TABLE IF NOT EXISTS {tableName} (
                                 id INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE NOT NULL,
                                 selfIndex VARCHAR NOT NULL,
-                                name VARCHAR NOT NULL,
-                                sceneIndex VARCHAR
+                                playName VARCHAR NOT NULL
                                 )""".format(tableName=DataBase.PlayInfoTable))
         ret = sqlQuery.exec_("""CREATE TABLE IF NOT EXISTS {tableName} (
                                 id INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE NOT NULL,
-                                name VARCHAR NOT NULL,
+                                sceneName VARCHAR NOT NULL,
                                 selfIndex VARCHAR NOT NULL,
-                                deviceSetIndex VARCHAR
+                                parentIndex VARCHAR
                                 )""".format(tableName=DataBase.SceneInfoTable))
         ret = sqlQuery.exec_("""CREATE TABLE IF NOT EXISTS {tableName} (
                                 id INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE NOT NULL,
                                 selfIndex VARCHAR NOT NULL,
-                                deviceIndex VARCHAR
+                                parentIndex VARCHAR NOT NULL,
+                                deviceIndex VARCHAR NOT NULL
                                 )""".format(tableName=DataBase.DeviceSetInfoTable))
     def insertPlays(self, name, id):
         sqlQuery = QSqlQuery(self.dataBase)
         if sqlQuery.exec_("""SELECT selfIndex FROM PlayInfo"""):
             while sqlQuery.next():
                 if sqlQuery.value(0) == id:
-                    ret = sqlQuery.exec_("UPDATE PlayInfo SET name='{n}' where selfIndex='{index}'"
+                    ret = sqlQuery.exec_("UPDATE PlayInfo SET playName='{n}' where selfIndex='{index}'"
                                    .format(n=name, index=id))
                     print("update Plays success", name, id)
                     return
             else:
-                insertStr = "INSERT INTO PlayInfo (name, selfIndex) VALUES ('{name}', '{id}')".format(name=name,id=id)
+                insertStr = "INSERT INTO PlayInfo (playName, selfIndex) VALUES ('{name}', '{id}')".format(name=name,id=id)
                 if sqlQuery.exec_(insertStr):
                     print("insert Plays success", name, id)
 
@@ -92,13 +92,31 @@ class DataBase(QObject):
     def rmPlays(self, table = "", item = dict()):
         print("select Record", item)
     def searchPlays(self):
-        pass
+        plays = {}
+        sqlQuery = QSqlQuery("""SELECT * FROM PlayInfo""")
+        rec = sqlQuery.record()
+        nameCol = rec.indexOf("playName")
+        indexCol = rec.indexOf("selfIndex")
+        while sqlQuery.next():
+            plays[sqlQuery.value(indexCol)] = sqlQuery.value(nameCol)
+        return plays
     def changePlays(self, name, id):
         sqlQuery = QSqlQuery(self.dataBase)
-        if sqlQuery.exec_("UPDATE PlayInfo SET name={nn} where selfIndex={id}".format(nn=newName, id=id)):
+        if sqlQuery.exec_("UPDATE PlayInfo SET playName={nn} where selfIndex={id}".format(nn=newName, id=id)):
             print("insert success")
-    def addScene(self):
-        pass
+    def insertScene(self, name, id):
+        sqlQuery = QSqlQuery(self.dataBase)
+        if sqlQuery.exec_("""SELECT selfIndex FROM SceneInfo"""):
+            while sqlQuery.next():
+                if sqlQuery.value(0) == id:
+                    ret = sqlQuery.exec_("UPDATE SceneInfo SET sceneName='{n}' where selfIndex='{index}'"
+                                   .format(n=name, index=id))
+                    print("update scene success", name, id)
+                    return
+            else:
+                insertStr = "INSERT INTO SceneInfo (SceneName, selfIndex) VALUES ('{name}', '{id}')".format(name=name,id=id)
+                if sqlQuery.exec_(insertStr):
+                    print("insert scene success", name, id)
     def rmScene(self):
         pass
     def searchScene(self):
@@ -112,7 +130,7 @@ class DataBase(QObject):
     def getAllDevicesInfo(self, subDevDict):
         sqlQuery = QSqlQuery("SELECT * FROM DeviceInfo", self.dataBase)
         rec = sqlQuery.record()
-        nameCol = rec.indexOf("name")
+        nameCol = rec.indexOf("devName")
         groupCol = rec.indexOf("devGroup")
         while sqlQuery.next():
             devGroup = sqlQuery.value(groupCol)
@@ -128,8 +146,8 @@ class DataBase(QObject):
         ret = self.rmDeviceInfo(item="devGroup", value=monitorName, sqlQuery=sqlQuery)
         count = 0
         for dev in devices:
-            insertStr = """INSERT INTO DeviceInfo (name, selfIndex, devGroup) VALUES ('{name}', {index}, '{group}')"""\
-                        .format(name=dev, index=count, group=monitorName)
+            insertStr = """INSERT INTO DeviceInfo (devName, selfIndex, devGroup) VALUES ('{name}', '{index}', '{group}')"""\
+                        .format(name=dev, index=dev + ':' + str(count), group=monitorName)
             if not sqlQuery.exec_(insertStr):
                 print("[sqlQuery exec error]", insertStr)
             count += 1
