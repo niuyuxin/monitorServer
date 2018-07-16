@@ -550,6 +550,7 @@ class OrganizedPlay(QDialog, ui_organizedplaydialog.Ui_organizedPlayDialog):
                                          .format(sId=sceneIndex))
                 ret = sqlQuery.exec_("""DELETE FROM PlayInfo WHERE selfIndex = '{sId}'""" \
                                      .format(sId=playsIndex))
+                self.tipsLabel.setText(self.tr("剧目") + "'{}'".format(currentWidget.text()) + self.tr("已删除"))
                 del currentWidget
 
     def searchPlays(self):
@@ -557,7 +558,7 @@ class OrganizedPlay(QDialog, ui_organizedplaydialog.Ui_organizedPlayDialog):
         rec = sqlQuery.record()
         nameCol = rec.indexOf("playName")
         indexCol = rec.indexOf("selfIndex")
-        plays = {}
+        plays = collections.OrderedDict()
         while sqlQuery.next():
             plays[sqlQuery.value(indexCol)] = sqlQuery.value(nameCol)
         return plays
@@ -568,4 +569,5 @@ class OrganizedPlay(QDialog, ui_organizedplaydialog.Ui_organizedPlayDialog):
     def onActivePushButtonClicked(self):
         widget = self.contentListWidget.currentItem()
         self.playsActive.emit(widget.selfId)
+        self.tipsLabel.setText(self.tr("剧目") + "'{}'".format(widget.text())+self.tr("已激活"))
 

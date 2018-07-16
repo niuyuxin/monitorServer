@@ -21,6 +21,7 @@ class DeviceAutoRunningWidget(QWidget):
         self.dataBase.setDatabaseName(DataBase.dataBaseName)
         self.dataBase.setUserName("root")
         self.dataBase.setPassword("123456")
+        self.scenes = []
         if not self.dataBase.open():
             print("OrganizedPlay database opened failure")
         self.playNameLabel = QLabel("剧目名称")
@@ -77,6 +78,7 @@ class DeviceAutoRunningWidget(QWidget):
         except Exception as e:
             print(str(e))
     def onNextPushButtonClicked(self):
+        if not self.scenes: return
         allScenes = len(self.scenes)
         if self.sceneIndexCount >= (allScenes-1):
             self.sceneIndexCount = 0
@@ -87,6 +89,7 @@ class DeviceAutoRunningWidget(QWidget):
 
 
     def onPrevPushButtonClicked(self):
+        if not self.scenes: return
         allScenes = len(self.scenes)
         if self.sceneIndexCount > 0:
             self.sceneIndexCount -= 1
