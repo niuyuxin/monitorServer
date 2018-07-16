@@ -51,7 +51,6 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
         self.contentFrameLayout = QHBoxLayout()
         self.contentFrame.setLayout(self.contentFrameLayout)
         # self.contentFrameLayout.setContentsMargins(0,0,0,0)
-        # Todo: get local device of monitor
         self.showAllDeviceInWidget()
         # push button signal and slots
         self.dataShowingPushButton.clicked.connect(self.onDataShowingPushButtonClicked)
@@ -86,6 +85,10 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
             self.contentWidgetList.remove(self.devGraphicWidget)
             self.contentFrameLayout.removeWidget(self.devGraphicWidget)
             self.devGraphicWidget.deleteLater()
+        if not self.devAutoRunningWidget:
+            self.devAutoRunningWidget = DeviceAutoRunningWidget()
+            self.contentFrameLayout.addWidget(self.devAutoRunningWidget)
+            self.contentWidgetList.append(self.devAutoRunningWidget)
         self.devDataWidget = DevDataWidget(allDevice)  # new widget
         self.contentFrameLayout.addWidget(self.devDataWidget)
         self.contentWidgetList.append(self.devDataWidget)
@@ -103,10 +106,9 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
     def onAutoRunningPushButtonClicked(self):
         self.showWidgetInContentWidget(widget=self.devAutoRunningWidget)
     def onOrganizedPlayPushButtonClicked(self):
-        plays = self.dataBase.searchPlays()
         try:
-            organizedPlay = OrganizedPlay(plays=plays, subDevDict=self.monitorSubDevDict)
-            organizedPlay.insertPlays.connect(self.dataBase.insertPlays)
+            organizedPlay = OrganizedPlay(subDevDict=self.monitorSubDevDict)
+            organizedPlay.playsActive.connect(self.devAutoRunningWidget.onAutoRunning)
             print("organizedPlay exit code:", organizedPlay.exec_())
         except Exception as e:
             print("create organized play error", str(e))

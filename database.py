@@ -8,7 +8,7 @@ from PyQt5.QtNetwork import QHostAddress
 class DataBaseException(Exception):pass
 class DataBase(QObject):
     dataBaseName = "TouchScreen.db"
-    dataBaseVersion = "180715.2"
+    dataBaseVersion = "180715.8"
     DeviceInfoTable = "DeviceInfo"
     PlayInfoTable = "PlayInfo"
     SceneInfoTable = "SceneInfo"
@@ -56,11 +56,14 @@ class DataBase(QObject):
                                 upLimitedPos INTEGER,
                                 downLimitedPos INTEGER,
                                 zeroPos INTEGER,
+                                targetPos INTEGER,
+                                devSpeed INTEGER,
                                 mutexDev INTEGER)""")
         ret = sqlQuery.exec_("""CREATE TABLE IF NOT EXISTS {tableName} (
                                 id INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE NOT NULL,
                                 selfIndex VARCHAR NOT NULL,
-                                playName VARCHAR NOT NULL
+                                playName VARCHAR NOT NULL,
+                                editingTime TEXT
                                 )""".format(tableName=DataBase.PlayInfoTable))
         ret = sqlQuery.exec_("""CREATE TABLE IF NOT EXISTS {tableName} (
                                 id INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE NOT NULL,
@@ -72,7 +75,9 @@ class DataBase(QObject):
                                 id INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE NOT NULL,
                                 selfIndex VARCHAR NOT NULL,
                                 parentIndex VARCHAR NOT NULL,
-                                deviceIndex VARCHAR NOT NULL
+                                deviceIndex VARCHAR NOT NULL,
+                                targetPos INT,
+                                devSpeed INT
                                 )""".format(tableName=DataBase.DeviceSetInfoTable))
     def insertPlays(self, name, id):
         sqlQuery = QSqlQuery(self.dataBase)
@@ -102,7 +107,7 @@ class DataBase(QObject):
         return plays
     def changePlays(self, name, id):
         sqlQuery = QSqlQuery(self.dataBase)
-        if sqlQuery.exec_("UPDATE PlayInfo SET playName={nn} where selfIndex={id}".format(nn=newName, id=id)):
+        if sqlQuery.exec_("UPDATE PlayInfo SET playName={nn} where selfIndex='{id}'".format(nn=newName, id=id)):
             print("insert success")
     def insertScene(self, name, id):
         sqlQuery = QSqlQuery(self.dataBase)
@@ -146,8 +151,9 @@ class DataBase(QObject):
         ret = self.rmDeviceInfo(item="devGroup", value=monitorName, sqlQuery=sqlQuery)
         count = 0
         for dev in devices:
-            insertStr = """INSERT INTO DeviceInfo (devName, selfIndex, devGroup) VALUES ('{name}', '{index}', '{group}')"""\
-                        .format(name=dev, index=dev + ':' + str(count), group=monitorName)
+            insertStr = """INSERT INTO DeviceInfo (devName, selfIndex, devGroup, targetPos, devSpeed) 
+                            VALUES ('{name}', '{index}', '{group}', {targetPos}, {devSpeed})"""\
+                        .format(name=dev, index=dev + ':' + str(count), group=monitorName, targetPos=1000, devSpeed=50)
             if not sqlQuery.exec_(insertStr):
                 print("[sqlQuery exec error]", insertStr)
             count += 1

@@ -64,8 +64,8 @@ class DeviceGraphicWidget(QWidget):
             column += 1
             count += 1
         self.scrollWidget = QWidget(self)
-        self.scrollWidget.setWindowFlags(Qt.SubWindow)
-        self.scrollWidget.showFullScreen()
+        # self.scrollWidget.setWindowFlags(Qt.SubWindow)
+        # self.scrollWidget.showFullScreen()
         self.scrollWidget.setLayout(self.scrollLayout)
         self.scrollArea = QScrollArea(self)
         self.scrollArea.setWidget(self.scrollWidget)
