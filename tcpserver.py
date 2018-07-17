@@ -7,6 +7,7 @@ from config import  *
 
 class TcpServer(QObject):
     getAllSubDev = pyqtSignal(str, list)
+    selectedDevice = pyqtSignal(list)
     def __init__(self):
         super().__init__()
         self.tcpServer = QTcpServer(self) # should have parent
@@ -29,7 +30,7 @@ class TcpServer(QObject):
                           Config.MonitorName:None}
             self.socketList.append(socketDict)
             print("socket accpet ", socket)
-            b = QByteArray(bytes(r"Hello, New tcpSocket... \n socket IpV4 = {}".format(socket.peerAddress().toString()), encoding="UTF-8"))
+            b = QByteArray(bytes(r"Hello, New tcpSocket... [socket IpV4 = {}]".format(socket.peerAddress().toString()), encoding="UTF-8"))
             socket.write(b)
     @pyqtSlot()
     def onSocketDisconnect(self):
@@ -68,12 +69,14 @@ class TcpServer(QObject):
                     else:
                         socket.disconnectFromHost()
                 else:
-                    print(dataDict)
-                    socket.write(data)
+                    self.analysisData(dataDict)
+                    # socket.write(data)
             except Exception as e:
                 print("error:", str(e))
-                socket.write(QByteArray(bytes("Hello", encoding="UTF-8")))
 
     def analysisData(self, dataDict):
-        pass
+        for item in dataDict.items():
+            if item[0].upper() == "selectedDevice".upper():
+                print("selectedDevice", item[1])
+                self.selectedDevice.emit(item[1])
 

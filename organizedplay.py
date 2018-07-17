@@ -123,6 +123,7 @@ class EditingDevAction(QDialog, ui_editingdevicedialog.Ui_EditingDevDialog):
         if self.dataBase.open():pass
         else:
             print("dev action opened failure")
+        QSqlQuery("PRAGMA synchronous = OFF;", self.dataBase)
         self.posSpinBox.setRange(0, 1000)
         self.speedSpinBox.setRange(0, 100)
         self.optionListWidget.setResizeMode(QListWidget.Adjust)
@@ -222,7 +223,8 @@ class EditingDevAction(QDialog, ui_editingdevicedialog.Ui_EditingDevDialog):
             if not sqlQuery.next():
                 insertStr = "INSERT INTO DeviceSetInfo (selfIndex, parentIndex, deviceIndex) " \
                             "VALUES ('{s}', '{p}', '{d}')".format(s=selfIndex,p=parentIndex,d=deviceIndex)
-                return sqlQuery.exec_(insertStr)
+                ret = sqlQuery.exec_(insertStr)
+                return ret
             else:
                 return True
         else:
@@ -264,9 +266,8 @@ class EditingDevAction(QDialog, ui_editingdevicedialog.Ui_EditingDevDialog):
         return False
 class EditingSceneAction(QDialog):
     databaseConnectionName = "SceneConnection"
-    def __init__(self, pId, subDevDict, scenes, parent=None):
+    def __init__(self, pId, parent=None):
         super().__init__(parent)
-        self.subDevDict = subDevDict
         self.parentId = pId
         self.isDirty = False
         self.dataBase = QSqlDatabase.addDatabase("QSQLITE", EditingSceneAction.databaseConnectionName)
@@ -305,6 +306,7 @@ class EditingSceneAction(QDialog):
         self.sceneListWidget.deletedAction.connect(self.onDeletePushButtonClicked)
         self.sceneListWidget.setFocusPolicy(Qt.ClickFocus)
         self.sceneListWidget.itemChanged.connect(self.onSceneListWidgetItemChanged)
+        scenes = self.getScenes(pId)
         for sceneItem in scenes.items():
             item = SceneListWidgetItem(
                 pId=self.parentId,
@@ -323,6 +325,16 @@ class EditingSceneAction(QDialog):
         self.sceneLayout.addWidget(self.sceneListWidget)
         self.sceneLayout.addLayout(self.buttonLayout)
         self.setLayout(self.sceneLayout)
+    def getScenes(self, pId):
+        sqlQuery = QSqlQuery(QSqlDatabase.database(EditingSceneAction.databaseConnectionName))
+        sqlQuery.exec_("""SELECT * FROM SceneInfo WHERE parentIndex='{}'""".format(pId))
+        rec = sqlQuery.record()
+        nameCol = rec.indexOf("sceneName")
+        indexCol = rec.indexOf("selfIndex")
+        sceneDict = collections.OrderedDict()
+        while sqlQuery.next():
+            sceneDict[sqlQuery.value(indexCol)] = sqlQuery.value(nameCol)
+        return sceneDict
     def onSceneListWidgetItemChanged(self, widget):
         self.sceneListWidget.setSpacing(20)
         if self.insertScene(name=widget.text(), id=widget.selfId, pId=widget.parentId):
@@ -396,8 +408,8 @@ class EditingSceneAction(QDialog):
         self.done(self.isDirty)
 class OrganizedPlay(QDialog, ui_organizedplaydialog.Ui_organizedPlayDialog):
     sqlDatabaseConntionName = "organizedPlayConnection"
-    playsActive = pyqtSignal(str)
-    def __init__(self, subDevDict=None, parent=None):
+    playsActive = pyqtSignal(str, str)
+    def __init__(self, parent=None):
         super().__init__(parent)
         self.setupUi(self)
         self.dataBase = QSqlDatabase.addDatabase("QSQLITE", OrganizedPlay.sqlDatabaseConntionName)
@@ -407,7 +419,6 @@ class OrganizedPlay(QDialog, ui_organizedplaydialog.Ui_organizedPlayDialog):
         if not self.dataBase.open():
             print("OrganizedPlay database opened failure")
         self.setWindowTitle(self.tr("编辑剧目"))
-        self.subDevDict = subDevDict
         self.returnPushButton.setDefault(True)
         # add plays
         self.contentLayout = QVBoxLayout()
@@ -443,22 +454,11 @@ class OrganizedPlay(QDialog, ui_organizedplaydialog.Ui_organizedPlayDialog):
         if playsItem is None:
             QMessageBox.warning(self, "Warning", self.tr("请选中要编辑的剧目"), QMessageBox.Ok)
         else:
-            sceneDict = self.getScenes(playsItem.selfId)
-            editingScene = EditingSceneAction(subDevDict=self.subDevDict, pId=playsItem.selfId, scenes=sceneDict)
+            editingScene = EditingSceneAction(playsItem.selfId)
             editingScene.resize(600, 300)
             if editingScene.exec_():
                 self.updateEditingTime(playsItem.selfId)
                 self.onContentListWidgetItemClicked(self.contentListWidget.currentItem())
-    def getScenes(self, pId):
-        sqlQuery = QSqlQuery(QSqlDatabase.database(OrganizedPlay.sqlDatabaseConntionName))
-        sqlQuery.exec_("""SELECT * FROM SceneInfo WHERE parentIndex='{}'""".format(pId))
-        rec = sqlQuery.record()
-        nameCol = rec.indexOf("sceneName")
-        indexCol = rec.indexOf("selfIndex")
-        sceneDict = {}
-        while sqlQuery.next():
-            sceneDict[sqlQuery.value(indexCol)] = sqlQuery.value(nameCol)
-        return sceneDict
     def onContentListWidgetItemDoubleClicked(self, widget):
         self.onEditingPushButtonClicked()
     def onContentListWidgetItemClicked(self, widget):
@@ -486,6 +486,17 @@ class OrganizedPlay(QDialog, ui_organizedplaydialog.Ui_organizedPlayDialog):
                     QMessageBox.warning(self, "Warning", self.tr("新建剧目失败， 请重试"), QMessageBox.Ok)
             except Exception as e:
                 print(str(e))
+
+    def getScenes(self, pId):
+        sqlQuery = QSqlQuery(QSqlDatabase.database(OrganizedPlay.sqlDatabaseConntionName))
+        sqlQuery.exec_("""SELECT * FROM SceneInfo WHERE parentIndex='{}'""".format(pId))
+        rec = sqlQuery.record()
+        nameCol = rec.indexOf("sceneName")
+        indexCol = rec.indexOf("selfIndex")
+        sceneDict = collections.OrderedDict()
+        while sqlQuery.next():
+            sceneDict[sqlQuery.value(indexCol)] = sqlQuery.value(nameCol)
+        return sceneDict
 
     def insertPlays(self, name, id):
         sqlQuery = QSqlQuery(self.dataBase)
@@ -568,6 +579,9 @@ class OrganizedPlay(QDialog, ui_organizedplaydialog.Ui_organizedPlayDialog):
 
     def onActivePushButtonClicked(self):
         widget = self.contentListWidget.currentItem()
-        self.playsActive.emit(widget.selfId)
-        self.tipsLabel.setText(self.tr("剧目") + "'{}'".format(widget.text())+self.tr("已激活"))
+        if widget:
+            self.playsActive.emit(widget.selfId, widget.text())
+            self.tipsLabel.setText(self.tr("剧目") + "'{}'".format(widget.text())+self.tr("已激活"))
+        else:
+            QMessageBox.warning(self, "Waring", self.tr("请选中要激活的剧目"), QMessageBox.Ok)
 

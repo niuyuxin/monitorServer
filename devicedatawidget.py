@@ -13,7 +13,7 @@ class SubDevDataWidget(QTableWidget):
     def __init__(self, subDeviceList = [], column=[], parent=None):
         super().__init__(parent)
         self.subDeviceList = subDeviceList
-        self.devInformationWidget = DeviceInfoWidget()
+        self.devInformationWidget = DeviceInfoWidget(self)
         self.showDeviceInfo.connect(self.devInformationWidget.onDeviceInformation)
         self.mouseInRow = -1
         self.mouseInColumn = 0
@@ -57,7 +57,7 @@ class SubDevDataWidget(QTableWidget):
 
     def onCellEntered(self, row, column):
         if row != self.mouseInRow:
-            self.triggerInfoDisplayTimer.start(3000)
+            self.triggerInfoDisplayTimer.start(1000)
             self.showDeviceInfo.emit(self.subDeviceList[row])
             self.devInformationWidget.hide()
             self.mouseInRow = row

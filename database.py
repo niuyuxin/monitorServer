@@ -8,7 +8,7 @@ from PyQt5.QtNetwork import QHostAddress
 class DataBaseException(Exception):pass
 class DataBase(QObject):
     dataBaseName = "TouchScreen.db"
-    dataBaseVersion = "180715.8"
+    dataBaseVersion = "180715.9"
     DeviceInfoTable = "DeviceInfo"
     PlayInfoTable = "PlayInfo"
     SceneInfoTable = "SceneInfo"
@@ -24,7 +24,7 @@ class DataBase(QObject):
             print("{} opened failed, reaseon:".format(DataBase.dataBaseName),
                   self.dataBase.lastError().text())
             pass # Fixme: should show some message to user.
-        sqlQuery = QSqlQuery(self.dataBase)
+        sqlQuery = QSqlQuery("PRAGMA synchronous = OFF;", self.dataBase)
         update = True
         tables = self.dataBase.tables()
         if "VersionInfo" in tables:

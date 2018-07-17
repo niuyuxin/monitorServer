@@ -10,6 +10,8 @@ QPushButton { /* kjk */
     /* border-color: gray; */
     /* border-style: solid; */
     /* border-radius: 10px; */
-
 }
+
 QPushButton:hover{ background-color: white }
+
+DeviceInfo{border-image:url(:/images/images/database.jpg)}

@@ -5,18 +5,47 @@ from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 
 class DeviceInfoWidget(QWidget):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent=None):
+        super().__init__(parent)
         self.setWindowTitle(self.tr("设备详细信息"))
         self.setFocus(Qt.MouseFocusReason)
         self.setMouseTracking(True)
         self.deviceNameLabel = QLabel("***")
-        self.deviceInfoLabel = QLabel("\n\n\n\ntext you what want to show in this widget...\n\n\n\n\n")
+        self.deviceUpLimit = QLabel(self.tr("已到达上限"))
+        self.deviceDownLimit = QLabel(self.tr("已到达下限"))
+        self.devLimitLayout = QHBoxLayout()
+        self.devLimitLayout.addWidget(self.deviceUpLimit)
+        self.devLimitLayout.addWidget(self.deviceDownLimit)
+        self.deviceCurPosLabel = QLabel(self.tr("当前位置:"))
+        self.devCurPosLineEdit = QLineEdit()
+        self.devCurPosLineEdit.setFocusPolicy(Qt.NoFocus)
+        self.devCurPosLineEdit.setEnabled(False)
+        self.devCurPosLayout = QHBoxLayout()
+        self.devCurPosLayout.addWidget(self.deviceCurPosLabel)
+        self.devCurPosLayout.addWidget(self.devCurPosLineEdit)
+        self.devWarningMesLabel = QLabel(self.tr("报警信息故障字:"))
+        self.devWarningMesLineEdit = QLineEdit()
+        self.devWarningMesLineEdit.setFocusPolicy(Qt.NoFocus)
+        self.devWarningMesLineEdit.setEnabled(False)
+        self.devWaringMesLayout = QHBoxLayout()
+        self.devWaringMesLayout.addWidget(self.devWarningMesLabel)
+        self.devWaringMesLayout.addWidget(self.devWarningMesLineEdit)
+        self.devCompilingLabel = QLabel(self.tr("是否有编场设置:"))
+        self.devCompilingInfoLabel = QLabel(self.tr(self.tr("未知")))
+        self.devCompilingLayout = QHBoxLayout()
+        self.devCompilingLayout.addWidget(self.devCompilingLabel)
+        self.devCompilingLayout.addWidget(self.devCompilingInfoLabel)
         self.layout = QVBoxLayout()
         self.layout.addWidget(self.deviceNameLabel, alignment=(Qt.AlignHCenter|Qt.AlignTop))
-        self.layout.addWidget(self.deviceInfoLabel)
+        self.layout.addLayout(self.devLimitLayout)
+        self.layout.addLayout(self.devCurPosLayout)
+        self.layout.addLayout(self.devWaringMesLayout)
+        self.layout.addLayout(self.devCompilingLayout)
         self.setLayout(self.layout)
-        self.layout.setContentsMargins(0,0,0,0)
+        self.setFixedSize(self.sizeHint())
+        self.setWindowFlags((self.windowFlags()&~Qt.WindowMinimizeButtonHint)|Qt.Window)
+        self.setFocusPolicy(Qt.WheelFocus)
+        self.setFocus(Qt.MenuBarFocusReason)
         self.hide()
     def showEvent(self, QShowEvent):
         try:
@@ -30,9 +59,12 @@ class DeviceInfoWidget(QWidget):
                 self.move(QCursor.pos())
         except Exception as e:
             print(str(e))
-    # def leaveEvent(self, QEvent): # Fixme: it doesn't work.
-    #     self.hide()
-    #     print(">>>")
+    # def focusInEvent(self, QFocusEvent):
+    #     pass
+    # def enterEvent(self, QEvent):
+    #     pass
+    def leaveEvent(self, QEvent): # Fixme: it doesn't work.
+        self.hide()
     def focusOutEvent(self, QFocusEvent): # Fixme: when widget lost focus, hide it.
         self.hide()
     def onDeviceInformation(self, device): # Fixme, the type of device should be 'subDev' type, to do define it.

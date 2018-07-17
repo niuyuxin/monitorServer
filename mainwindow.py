@@ -26,14 +26,9 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
         self.rtc.timeout.connect(self.onRtcTimeout)
         self.onRtcTimeout()
         self.rtc.start(1000)
-        # create Device Data Widget
-        self.devDataWidget = None
-        self.devGraphicWidget = None
-        self.devAutoRunningWidget  = None
-        self.monitorSubDevDict = {}
-        self.contentWidgetList = []
 
         # create mysql database
+        self.monitorSubDevDict = {}
         self.dataBase = DataBase()
         self.dataBase.getAllDevicesInfo(self.monitorSubDevDict)
         self.dataBase.databaseState.connect(self.onDatabaseState)
@@ -41,17 +36,34 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
         self.dataBase.moveToThread(self.dataBaseThread)
         self.getMonitorDevice.connect(self.dataBase.onCreateDevicesInfo)
         self.dataBaseThread.start()
+
+        # create Device Data Widget
+        self.devDataWidget = None
+        self.devGraphicWidget = None
+        self.devAutoRunningWidget  = None
+        self.contentWidgetList = []
+
+        self.contentFrameLayout = QHBoxLayout()
+        self.contentFrame.setLayout(self.contentFrameLayout)
+        # self.contentFrameLayout.setContentsMargins(0,0,0,0)
+        # graphic view
+        self.devGraphicWidget = DeviceGraphicWidget(self.getAllDevice())  # new widget
+        self.contentFrameLayout.addWidget(self.devGraphicWidget)
+        self.contentWidgetList.append(self.devGraphicWidget)
+        # auto running..
+        self.devAutoRunningWidget = DeviceAutoRunningWidget()
+        self.contentFrameLayout.addWidget(self.devAutoRunningWidget)
+        self.contentWidgetList.append(self.devAutoRunningWidget)
+        self.showAllDeviceInWidget()
+
         # create tcp server, main function...
         self.tcpServer = TcpServer()
         self.tcpServerThread = QThread()
         self.tcpServer.moveToThread(self.tcpServerThread)
         self.tcpServer.getAllSubDev.connect(self.onTcpServerGetAllSubDev)
+        self.tcpServer.selectedDevice.connect(self.devGraphicWidget.onSelectedDevice)
         self.tcpServerThread.start()
 
-        self.contentFrameLayout = QHBoxLayout()
-        self.contentFrame.setLayout(self.contentFrameLayout)
-        # self.contentFrameLayout.setContentsMargins(0,0,0,0)
-        self.showAllDeviceInWidget()
         # push button signal and slots
         self.dataShowingPushButton.clicked.connect(self.onDataShowingPushButtonClicked)
         self.graphicShowingPushButton.clicked.connect(self.onGraphicShowingPushButtonClicked)
@@ -72,30 +84,24 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
         self.getMonitorDevice.emit(monitorName, subDev)
         print("some thing changed...")
         self.showAllDeviceInWidget()
-    def showAllDeviceInWidget(self):
+    def getAllDevice(self):
         allDevice = []
         for key in self.monitorSubDevDict.keys():
             for dev in self.monitorSubDevDict[key]:
                 allDevice.append(dev)
+        return allDevice
+    def showAllDeviceInWidget(self):
         if self.devDataWidget is not None:
             self.contentWidgetList.remove(self.devDataWidget)
             self.contentFrameLayout.removeWidget(self.devDataWidget)
             self.devDataWidget.deleteLater()
-        if self.devGraphicWidget is not None:
-            self.contentWidgetList.remove(self.devGraphicWidget)
-            self.contentFrameLayout.removeWidget(self.devGraphicWidget)
-            self.devGraphicWidget.deleteLater()
-        if not self.devAutoRunningWidget:
-            self.devAutoRunningWidget = DeviceAutoRunningWidget()
-            self.contentFrameLayout.addWidget(self.devAutoRunningWidget)
-            self.contentWidgetList.append(self.devAutoRunningWidget)
-        self.devDataWidget = DevDataWidget(allDevice)  # new widget
+        # if not self.devAutoRunningWidget:
+        #     self.devAutoRunningWidget = DeviceAutoRunningWidget()
+        #     self.contentFrameLayout.addWidget(self.devAutoRunningWidget)
+        #     self.contentWidgetList.append(self.devAutoRunningWidget)
+        self.devDataWidget = DevDataWidget(self.getAllDevice())  # new widget
         self.contentFrameLayout.addWidget(self.devDataWidget)
         self.contentWidgetList.append(self.devDataWidget)
-
-        self.devGraphicWidget = DeviceGraphicWidget(allDevice)  # new widget
-        self.contentFrameLayout.addWidget(self.devGraphicWidget)
-        self.contentWidgetList.append(self.devGraphicWidget)
         self.showWidgetInContentWidget(widget=self.devDataWidget)
 
     def onDataShowingPushButtonClicked(self):
@@ -107,7 +113,7 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
         self.showWidgetInContentWidget(widget=self.devAutoRunningWidget)
     def onOrganizedPlayPushButtonClicked(self):
         try:
-            organizedPlay = OrganizedPlay(subDevDict=self.monitorSubDevDict)
+            organizedPlay = OrganizedPlay()
             organizedPlay.playsActive.connect(self.devAutoRunningWidget.onAutoRunning)
             print("organizedPlay exit code:", organizedPlay.exec_())
         except Exception as e:
