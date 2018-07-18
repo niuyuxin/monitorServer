@@ -4,8 +4,10 @@ import  sys
 import  os
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
+from PyQt5.QtGui import *
 from mainwindow import MainWindow
-
+from config import Config
+from loginwidget import LoginWidget
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
@@ -19,9 +21,14 @@ if __name__ == "__main__":
                             "Warning",
                             "Maybe you lost style sheet file for this Application",
                             QMessageBox.Ok)
-    mainWindow = MainWindow()
-    mainWindow.setWindowTitle("MonitorServer")
-    mainWindow.show()
-
-    sys.exit(app.exec_())
+    Config()
+    ret = LoginWidget().exec_()
+    if ret:
+        mainWindow = MainWindow()
+        mainWindow.setWindowTitle("MonitorServer")
+        mainWindow.show()
+        # mainWindow.setEnabled(False)
+        sys.exit(app.exec_())
+    else:
+        sys.exit(app.exit(0))
 

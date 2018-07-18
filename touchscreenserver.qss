@@ -14,4 +14,15 @@ QPushButton { /* kjk */
 
 QPushButton:hover{ background-color: white }
 
-DeviceInfo{border-image:url(:/images/images/database.jpg)}
+DeviceInfo{background-color: white}
+
+QLabel#inverterPicLabel {
+    border-image:url(:/images/images/inverter.png);
+}
+QLabel#devPicLabel {
+    border-image:url(:/images/images/steeve.jpg);
+
+}
+LoginWidget {
+    border-image:url(:/images/images/loginpic.jpg);
+}

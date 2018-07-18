@@ -16,6 +16,11 @@ class DeviceInfo(QFrame, ui_deviceinfo.Ui_DeviceInfo):
         self.setupUi(self)
         self.devNameLabel.setText(name)
 
+    def paintEvent(self, QPaintEvent):
+        opt = QStyleOption()
+        opt.initFrom(self)
+        p = QPainter(self)
+        self.style().drawPrimitive(QStyle.PE_Widget, opt, p, self)
 class DeviceAutoRunningWidget(QWidget):
     def __init__(self, parent = None):
         super().__init__(parent)

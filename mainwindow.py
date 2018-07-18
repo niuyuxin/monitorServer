@@ -12,6 +12,7 @@ from deviceautorunningwidget import DeviceAutoRunningWidget
 from devicegraphicwidget import  DeviceGraphicWidget
 from organizedplay import OrganizedPlay
 from database import DataBase
+from systemmanagement import *
 
 class MainWindow(QWidget, ui_mainwindow.Ui_Form):
     getMonitorDevice = pyqtSignal(str, list)
@@ -69,7 +70,7 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
         self.graphicShowingPushButton.clicked.connect(self.onGraphicShowingPushButtonClicked)
         self.autoRunningPushButton.clicked.connect(self.onAutoRunningPushButtonClicked)
         self.organizedPlayPushButton.clicked.connect(self.onOrganizedPlayPushButtonClicked)
-
+        self.systemManagementPushButton.clicked.connect(self.onSystemManagementPushButtonClicked)
     def onRtcTimeout(self):
         self.timeLabel.setText(QDateTime.currentDateTime().toString("yyyy-MM-dd hh:mm:ss"))
     @pyqtSlot(str, list)
@@ -132,3 +133,11 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
             self.databaseLabel.setText("数据库忙")
         else:
             self.databaseLabel.setText("数据库闲")
+    def onSystemManagementPushButtonClicked(self):
+        login = AccountLogin()
+        if login.exec_():
+            try:
+                sysManagement = SystemManagement()
+                sysManagement.exec_()
+            except Exception as e:
+                print(str(e))
