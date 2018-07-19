@@ -13,6 +13,7 @@ from devicegraphicwidget import  DeviceGraphicWidget
 from organizedplay import OrganizedPlay
 from database import DataBase
 from systemmanagement import *
+from devicenetgraphic import *
 
 class MainWindow(QWidget, ui_mainwindow.Ui_Form):
     getMonitorDevice = pyqtSignal(str, list)
@@ -71,6 +72,7 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
         self.autoRunningPushButton.clicked.connect(self.onAutoRunningPushButtonClicked)
         self.organizedPlayPushButton.clicked.connect(self.onOrganizedPlayPushButtonClicked)
         self.systemManagementPushButton.clicked.connect(self.onSystemManagementPushButtonClicked)
+        self.netFramePushButton.clicked.connect(self.onNetFramePushButtonClicked)
     def onRtcTimeout(self):
         self.timeLabel.setText(QDateTime.currentDateTime().toString("yyyy-MM-dd hh:mm:ss"))
     @pyqtSlot(str, list)
@@ -141,3 +143,8 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
                 sysManagement.exec_()
             except Exception as e:
                 print(str(e))
+    def onNetFramePushButtonClicked(self):
+        deviceNetGraphic = DeviceNetGraphic(parent=self)
+        deviceNetGraphic.setWindowFlags(Qt.Dialog)
+        deviceNetGraphic.setWindowModality(Qt.WindowModal)
+        deviceNetGraphic.showFullScreen()

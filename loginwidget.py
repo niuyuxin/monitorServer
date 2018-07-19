@@ -6,6 +6,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from ui import ui_loginwidget
 from config import Config
+from mainwindow import MainWindow
 
 class LoginWidget(QDialog):
     def __init__(self, parent=None):
@@ -20,7 +21,7 @@ class LoginWidget(QDialog):
         self.loginDialog.accountLineEdit.setText("root")
         self.loginDialog.passwordLineEdit.setText(Config.cryptoValue("Password/root"))
         self.loginDialog.loginPushButton.setFocus()
-        # self.loginDialog.loginPushButton.animateClick()
+        self.loginDialog.loginPushButton.animateClick()
     def paintEvent(self, *args, **kwargs):
         rect = self.geometry()
         x = int(rect.width() - self.loginWidget.width()*1.4) if rect.width() > self.loginWidget.width()*1.4 else 0

@@ -26,3 +26,14 @@ QLabel#devPicLabel {
 LoginWidget {
     border-image:url(:/images/images/loginpic.jpg);
 }
+DeviceNetGraphic {
+    background-color: cyan
+}
+QLabel#serverLabel{
+    background-color: yellow
+}
+/*
+QLabel#plcLabel{
+    border-image:url(:images/images/inverter.png);
+}
+*/
