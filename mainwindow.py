@@ -144,7 +144,10 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
             except Exception as e:
                 print(str(e))
     def onNetFramePushButtonClicked(self):
-        deviceNetGraphic = DeviceNetGraphic(parent=self)
-        deviceNetGraphic.setWindowFlags(Qt.Dialog)
-        deviceNetGraphic.setWindowModality(Qt.WindowModal)
-        deviceNetGraphic.showFullScreen()
+        try:
+            deviceNetGraphic = DeviceNetGraphic(self.getAllDevice())
+            for dev in self.getAllDevice():
+                deviceNetGraphic.stateChanged(dev, False, True)
+            deviceNetGraphic.exec_()
+        except Exception as e:
+            print(str(e))

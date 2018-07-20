@@ -27,13 +27,11 @@ LoginWidget {
     border-image:url(:/images/images/loginpic.jpg);
 }
 DeviceNetGraphic {
-    background-color: cyan
+    background-color: green
 }
 QLabel#serverLabel{
     background-color: yellow
 }
-/*
 QLabel#plcLabel{
-    border-image:url(:images/images/inverter.png);
+    background-color: cyan
 }
-*/
