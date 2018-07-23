@@ -21,9 +21,9 @@ class DeviceContainer(QFrame):
                 while subItem.itemAt(0):
                     label = subItem.takeAt(0).widget()
                     label.setParent(None)
-                    # del label
-                # del subItem
-            # del item
+                    del label
+                del subItem
+            del item
 
     def createDev(self, devList):
         self.deleteDev()
@@ -120,6 +120,7 @@ class DeviceNetGraphic(QDialog):
         self.mainLayout.addWidget(self.exitPushButton, alignment=Qt.AlignRight)
         self.mainLayout.setSpacing(40)
         self.setLayout(self.mainLayout)
+        self.setWindowFlags(self.windowFlags() | Qt.WindowMaximizeButtonHint)
     def stateChanged(self, devName, state, working=False):
         self.devFrame.stateChanged(devName, state, working)
     def paintEvent(self, QPaintEvent):

@@ -18,6 +18,7 @@ from devicenetgraphic import *
 class MainWindow(QWidget, ui_mainwindow.Ui_Form):
     getMonitorDevice = pyqtSignal(str, list)
     getPlaysInfo = pyqtSignal()
+    sendDataToTcp = pyqtSignal(str, str)
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
@@ -64,6 +65,7 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
         self.tcpServer.moveToThread(self.tcpServerThread)
         self.tcpServer.getAllSubDev.connect(self.onTcpServerGetAllSubDev)
         self.tcpServer.selectedDevice.connect(self.devGraphicWidget.onSelectedDevice)
+        self.sendDataToTcp.connect(self.tcpServer.onSendData)
         self.tcpServerThread.start()
 
         # push button signal and slots
@@ -114,6 +116,7 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
         self.showWidgetInContentWidget(widget=self.devGraphicWidget)
     def onAutoRunningPushButtonClicked(self):
         self.showWidgetInContentWidget(widget=self.devAutoRunningWidget)
+        self.sendDataToTcp.emit("infoScreen", "")
     def onOrganizedPlayPushButtonClicked(self):
         try:
             organizedPlay = OrganizedPlay()

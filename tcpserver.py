@@ -4,8 +4,10 @@
 from PyQt5.QtNetwork import *
 from PyQt5.QtCore import *
 from config import  *
+import ast
 
 class TcpServer(QObject):
+    Modal = "Modal"
     getAllSubDev = pyqtSignal(str, list)
     selectedDevice = pyqtSignal(list)
     def __init__(self):
@@ -29,7 +31,7 @@ class TcpServer(QObject):
                           Config.MonitorHoldDevice:None,
                           Config.MonitorName:None}
             self.socketList.append(socketDict)
-            print("socket accpet ", socket)
+            print("socket accpet ", socketDict)
             b = QByteArray(bytes(r"Hello, New tcpSocket... [socket IpV4 = {}]".format(socket.peerAddress().toString()), encoding="UTF-8"))
             socket.write(b)
     @pyqtSlot()
@@ -45,16 +47,19 @@ class TcpServer(QObject):
     @pyqtSlot()
     def onReadyToRead(self):
         socket = self.sender()
+        socketDict = {}
         for s in self.socketList:
             if s[Config.MonitorSocket] == socket:
                 socketDict = s
                 break
-        if not socketDict: return
+        if not socketDict:
+            print("socket {} is not in socketList".format(socketDict))
+            return
         while socket.bytesAvailable():
             data = socket.readAll()
             print("[waring] Getting data of size is: ", len(data))
             try:
-                dataDict = eval(str(data, encoding="UTF-8"))
+                dataDict = ast.literal_eval(str(data, encoding="UTF-8"))
                 if not socketDict[Config.MonitorName] or not socketDict[Config.MonitorId]:
                     if isinstance(dataDict, dict):
                         socketDict[Config.MonitorId] = dataDict.get(Config.MonitorId)
@@ -73,6 +78,9 @@ class TcpServer(QObject):
                     # socket.write(data)
             except Exception as e:
                 print("error:", str(e))
+                tempDict = {"Error":"Hello"}
+                b = QByteArray(bytes(str(tempDict), encoding="UTF-8"))
+                socket.write(b)
 
     def analysisData(self, dataDict):
         for item in dataDict.items():
@@ -80,3 +88,17 @@ class TcpServer(QObject):
                 print("selectedDevice", item[1])
                 self.selectedDevice.emit(item[1])
 
+    def onSendData(self, name, data):
+        sendSocket = None
+        try:
+            for socket in self.socketList:
+                if socket[Config.MonitorName] == name and \
+                        socket[Config.MonitorSocket].state() == QAbstractSocket.ConnectedState:
+                    sendSocket = socket[Config.MonitorSocket]
+                    break
+        except Exception as e:
+            print(str(e))
+        if sendSocket:
+            tempDict = {TcpServer.Modal: 1}
+            b = QByteArray(bytes(str(tempDict), encoding="UTF-8"))
+            sendSocket.write(b)

@@ -54,7 +54,6 @@ class SubDevDataWidget(QTableWidget):
         # tigger informatin display
         self.triggerInfoDisplayTimer = QTimer()
         self.triggerInfoDisplayTimer.timeout.connect(self.onTriggerInfoDisplayTimerTimeout)
-
     def onCellEntered(self, row, column):
         if row != self.mouseInRow:
             self.triggerInfoDisplayTimer.start(1000)
