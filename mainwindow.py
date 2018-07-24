@@ -14,11 +14,12 @@ from organizedplay import OrganizedPlay
 from database import DataBase
 from systemmanagement import *
 from devicenetgraphic import *
+import collections
 
 class MainWindow(QWidget, ui_mainwindow.Ui_Form):
     getMonitorDevice = pyqtSignal(str, list)
     getPlaysInfo = pyqtSignal()
-    sendDataToTcp = pyqtSignal(str, str)
+    sendDataToTcp = pyqtSignal(str, int, str)
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
@@ -57,6 +58,7 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
         self.devAutoRunningWidget = DeviceAutoRunningWidget()
         self.contentFrameLayout.addWidget(self.devAutoRunningWidget)
         self.contentWidgetList.append(self.devAutoRunningWidget)
+        self.devAutoRunningWidget.sendDataToTcp.connect(self.sendDataToTcp)
         self.showAllDeviceInWidget()
 
         # create tcp server, main function...
@@ -100,10 +102,6 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
             self.contentWidgetList.remove(self.devDataWidget)
             self.contentFrameLayout.removeWidget(self.devDataWidget)
             self.devDataWidget.deleteLater()
-        # if not self.devAutoRunningWidget:
-        #     self.devAutoRunningWidget = DeviceAutoRunningWidget()
-        #     self.contentFrameLayout.addWidget(self.devAutoRunningWidget)
-        #     self.contentWidgetList.append(self.devAutoRunningWidget)
         self.devDataWidget = DevDataWidget(self.getAllDevice())  # new widget
         self.contentFrameLayout.addWidget(self.devDataWidget)
         self.contentWidgetList.append(self.devDataWidget)
@@ -114,9 +112,10 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
             self.showWidgetInContentWidget(widget=self.devDataWidget)
     def onGraphicShowingPushButtonClicked(self):
         self.showWidgetInContentWidget(widget=self.devGraphicWidget)
+
     def onAutoRunningPushButtonClicked(self):
         self.showWidgetInContentWidget(widget=self.devAutoRunningWidget)
-        self.sendDataToTcp.emit("infoScreen", "")
+
     def onOrganizedPlayPushButtonClicked(self):
         try:
             organizedPlay = OrganizedPlay()

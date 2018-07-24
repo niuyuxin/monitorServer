@@ -79,7 +79,7 @@ class TcpServer(QObject):
             except Exception as e:
                 print("error:", str(e))
                 tempDict = {"Error":"Hello"}
-                b = QByteArray(bytes(str(tempDict), encoding="UTF-8"))
+                b = QByteArray(bytes(str(tempDict), encoding="UTF-8")).append("\n")
                 socket.write(b)
 
     def analysisData(self, dataDict):
@@ -88,17 +88,17 @@ class TcpServer(QObject):
                 print("selectedDevice", item[1])
                 self.selectedDevice.emit(item[1])
 
-    def onSendData(self, name, data):
+    def onSendData(self, name, id, data):
         sendSocket = None
         try:
             for socket in self.socketList:
                 if socket[Config.MonitorName] == name and \
-                        socket[Config.MonitorSocket].state() == QAbstractSocket.ConnectedState:
+                    socket[Config.MonitorId] == str(id) and \
+                    socket[Config.MonitorSocket].state() == QAbstractSocket.ConnectedState:
                     sendSocket = socket[Config.MonitorSocket]
-                    break
+                    d = QByteArray(bytes(data, encoding="UTF-8")).append("\n")
+                    sendSocket.write(d)
+                    sendSocket.waitForBytesWritten()
         except Exception as e:
-            print(str(e))
-        if sendSocket:
-            tempDict = {TcpServer.Modal: 1}
-            b = QByteArray(bytes(str(tempDict), encoding="UTF-8"))
-            sendSocket.write(b)
+            print("onsendData", str(e))
+
