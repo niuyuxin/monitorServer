@@ -56,6 +56,9 @@ class DeviceAutoRunningWidget(QWidget):
         self.mainLayout.addWidget(self.devScrollArea)
         self.mainLayout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.mainLayout)
+        self.testTimer = QTimer()
+        self.testTimer.timeout.connect(self.onTestTimerTimeout)
+        self.testTimer.start(1)
     def onAutoRunning(self, play, playName):
         self.playNameLabel.setText(playName)
         sqlQuery = QSqlQuery(self.dataBase)
@@ -112,6 +115,28 @@ class DeviceAutoRunningWidget(QWidget):
 
     def showEvent(self, QShowEvent):
         self.showInfoScreen()
+
+    def hideEvent(self, QHideEvent):
+        self.hideInfoScreen()
+
+    def onTestTimerTimeout(self):
+        # self.hideInfoScreen()
+        self.showInfoScreen()
+
+    def hideInfoScreen(self):
+        infoList = []
+        devList = []
+        for i in range(43):
+            devList.append(("设备{}".format(i),0))
+
+        for i in range(4):
+            info = {"Modal": "Single",
+                    "Running": False,
+                    "Section": i,
+                    "SceneName": [],
+                    "Device": devList}
+            self.sendDataToTcp.emit("infoScreen", i // 2, json.dumps(info, ensure_ascii=False))
+
     def showInfoScreen(self):# maximum 4 scenes in infoscreen
         try:
             count = 0
