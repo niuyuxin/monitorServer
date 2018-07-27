@@ -22,7 +22,7 @@ class DeviceInfo(QFrame, ui_deviceinfo.Ui_DeviceInfo):
         opt.initFrom(self)
         p = QPainter(self)
         self.style().drawPrimitive(QStyle.PE_Widget, opt, p, self)
-class DeviceAutoRunningWidget(QWidget):
+class DevProgramWidget(QWidget):
     sendDataToTcp = pyqtSignal(str, int, str)
     def __init__(self, parent = None):
         super().__init__(parent)
@@ -70,7 +70,9 @@ class DeviceAutoRunningWidget(QWidget):
             if sqlQuery.exec_("""SELECT deviceIndex FROM DeviceSetInfo WHERE parentIndex='{}'""".format(key[0])):
                 while sqlQuery.next():
                     self.scenes[key].append(sqlQuery.value(0))
-        self.showScenes(0)
+        self.sceneIndexCount = 0
+        self.showScenes(self.sceneIndexCount)
+        self.showInfoScreen()
 
     def showScenes(self, scenesNumber):
         if self.scenes:
@@ -114,30 +116,22 @@ class DeviceAutoRunningWidget(QWidget):
         self.showInfoScreen()
 
     def showEvent(self, QShowEvent):
-        self.showInfoScreen()
-
-    def hideEvent(self, QHideEvent):
-        self.hideInfoScreen()
-
-    def onTestTimerTimeout(self):
-        # self.hideInfoScreen()
-        self.showInfoScreen()
-
-    def hideInfoScreen(self):
-        infoList = []
-        devList = []
-        for i in range(43):
-            devList.append(("设备{}".format(i),0))
-
         for i in range(4):
-            info = {"Modal": "Single",
-                    "Running": False,
-                    "Section": i,
-                    "SceneName": [],
-                    "Device": devList}
-            self.sendDataToTcp.emit("infoScreen", i // 2, json.dumps(info, ensure_ascii=False))
+            info = [2, "123", "Forbidden", {}]
+            self.sendDataToTcp.emit("TouchScreen", i, json.dumps(info, ensure_ascii=False))
+        for i in range(2):
+            info = [2, "1234567890", "setScreen", 9]
+            self.sendDataToTcp.emit("infoScreen", i, json.dumps(info, ensure_ascii=False))
+        self.showInfoScreen()
 
-    def showInfoScreen(self):# maximum 4 scenes in infoscreen
+    # def hideEvent(self, QHideEvent):
+    #     self.hideInfoScreen()
+
+    def onTestTimerTimeout(self):pass
+        # self.hideInfoScreen()
+        # self.showInfoScreen()
+
+    def showInfoScreen(self):
         try:
             count = 0
             infoList = []
@@ -148,20 +142,24 @@ class DeviceAutoRunningWidget(QWidget):
                     for d in item[1]:
                         t = (d, 0, 0, True, False)
                         dev.append(t)
-                    info = {"Modal":"Program",
+                    info = [2, "1234567890", "value", {"Modal":"Program",
                             "Running": False,
+                            "Section": count-begin,
                             "PlayName":self.playNameLabel.text(),
                             "SceneName":item[0][1],
-                            "Device":dev}
+                            "Device":dev}]
                     infoList.append(info)
                 count += 1
+            count = 0
             while len(infoList) < 4:
-                info = {"Modal": "Program",
+                info = [2, "1234567890", "value", {"Modal": "Program",
                         "Running": False,
+                        "Section": count,
                         "PlayName": [],
                         "SceneName": [],
-                        "Device": []}
+                        "Device": []}]
                 infoList.append(info)
+                count += 1
             for i in range(4):
                 self.sendDataToTcp.emit("infoScreen", i//2, json.dumps(infoList[i], ensure_ascii=False))
         except Exception as e:

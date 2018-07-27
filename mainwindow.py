@@ -8,7 +8,7 @@ from PyQt5.QtGui import *
 from ui import ui_mainwindow
 from tcpserver import TcpServer
 from devicedatawidget import  DevDataWidget
-from deviceautorunningwidget import DeviceAutoRunningWidget
+from deviceprogramwidget import DevProgramWidget
 from devicegraphicwidget import  DeviceGraphicWidget
 from organizedplay import OrganizedPlay
 from database import DataBase
@@ -44,7 +44,7 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
         # create Device Data Widget
         self.devDataWidget = None
         self.devGraphicWidget = None
-        self.devAutoRunningWidget  = None
+        self.devProgramWidget  = None
         self.contentWidgetList = []
 
         self.contentFrameLayout = QHBoxLayout()
@@ -52,13 +52,14 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
         # self.contentFrameLayout.setContentsMargins(0,0,0,0)
         # graphic view
         self.devGraphicWidget = DeviceGraphicWidget(self.getAllDevice())  # new widget
+        self.devGraphicWidget.sendDataToTcp.connect(self.sendDataToTcp)
         self.contentFrameLayout.addWidget(self.devGraphicWidget)
         self.contentWidgetList.append(self.devGraphicWidget)
-        # auto running..
-        self.devAutoRunningWidget = DeviceAutoRunningWidget()
-        self.contentFrameLayout.addWidget(self.devAutoRunningWidget)
-        self.contentWidgetList.append(self.devAutoRunningWidget)
-        self.devAutoRunningWidget.sendDataToTcp.connect(self.sendDataToTcp)
+        # program running..
+        self.devProgramWidget = DevProgramWidget()
+        self.contentFrameLayout.addWidget(self.devProgramWidget)
+        self.contentWidgetList.append(self.devProgramWidget)
+        self.devProgramWidget.sendDataToTcp.connect(self.sendDataToTcp)
         self.showAllDeviceInWidget()
 
         # create tcp server, main function...
@@ -89,7 +90,7 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
         else:
             self.monitorSubDevDict[monitorName] = subDev
         self.getMonitorDevice.emit(monitorName, subDev)
-        print("some thing changed...")
+        print("some thing changed...", subDev)
         self.showAllDeviceInWidget()
     def getAllDevice(self):
         allDevice = []
@@ -103,6 +104,7 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
             self.contentFrameLayout.removeWidget(self.devDataWidget)
             self.devDataWidget.deleteLater()
         self.devDataWidget = DevDataWidget(self.getAllDevice())  # new widget
+        self.devDataWidget.sendDataToTcp.connect(self.sendDataToTcp)
         self.contentFrameLayout.addWidget(self.devDataWidget)
         self.contentWidgetList.append(self.devDataWidget)
         self.showWidgetInContentWidget(widget=self.devDataWidget)
@@ -114,12 +116,12 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
         self.showWidgetInContentWidget(widget=self.devGraphicWidget)
 
     def onAutoRunningPushButtonClicked(self):
-        self.showWidgetInContentWidget(widget=self.devAutoRunningWidget)
+        self.showWidgetInContentWidget(widget=self.devProgramWidget)
 
     def onOrganizedPlayPushButtonClicked(self):
         try:
             organizedPlay = OrganizedPlay()
-            organizedPlay.playsActive.connect(self.devAutoRunningWidget.onAutoRunning)
+            organizedPlay.playsActive.connect(self.devProgramWidget.onAutoRunning)
             print("organizedPlay exit code:", organizedPlay.exec_())
         except Exception as e:
             print("create organized play error", str(e))

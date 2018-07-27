@@ -62,14 +62,13 @@ class TcpServer(QObject):
                 dataDict = ast.literal_eval(str(data, encoding="UTF-8"))
                 if not socketDict[Config.MonitorName] or not socketDict[Config.MonitorId]:
                     if isinstance(dataDict, dict):
-                        socketDict[Config.MonitorId] = dataDict.get(Config.MonitorId)
+                        socketDict[Config.MonitorId] = int(dataDict.get(Config.MonitorId))
                         socketDict[Config.MonitorHoldDevice] = dataDict.get(Config.MonitorHoldDevice)
                         socketDict[Config.MonitorName] = dataDict.get(Config.MonitorName)
                         allDevice = dataDict.get(Config.MonitorHoldDevice)
                         monitorName = dataDict.get(Config.MonitorName)
                         if allDevice and monitorName:
                             self.getAllSubDev.emit(monitorName, allDevice)
-                        print(socketDict)
                         # socket.write(data)
                     else:
                         socket.disconnectFromHost()
@@ -93,7 +92,7 @@ class TcpServer(QObject):
         try:
             for socket in self.socketList:
                 if socket[Config.MonitorName] == name and \
-                    socket[Config.MonitorId] == str(id) and \
+                    socket[Config.MonitorId] == id and \
                     socket[Config.MonitorSocket].state() == QAbstractSocket.ConnectedState:
                     sendSocket = socket[Config.MonitorSocket]
                     d = QByteArray(bytes(data, encoding="UTF-8")).append("\n")

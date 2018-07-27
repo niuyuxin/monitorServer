@@ -5,6 +5,7 @@
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
+import  json
 
 from miscutils import DeviceInfoWidget, VerticalSlider
 
@@ -41,9 +42,11 @@ class GraphicWidget(QFrame):
 
 class DeviceGraphicWidget(QWidget):
     showDeviceInformation = pyqtSignal(str)
+    sendDataToTcp = pyqtSignal(str, int, str)
     def __init__(self, subDevList=[], parent=None):
         super().__init__(parent)
         self.subDevList = subDevList
+        self.selectedDevList = []
         self.deviceInfoWidget = DeviceInfoWidget(self)
         self.showDeviceInformation.connect(self.deviceInfoWidget.onDeviceInformation)
         self.showDeviceInfoTimer = QTimer()
@@ -62,6 +65,7 @@ class DeviceGraphicWidget(QWidget):
         count = 0
         layout = QGridLayout()
         layout.setSpacing(0)
+        self.selectedDevList = devList
         for subDev in devList:
             if column > 10:
                 column = 0
@@ -74,6 +78,20 @@ class DeviceGraphicWidget(QWidget):
         widget = QWidget()
         widget.setLayout(layout)
         self.scrollArea.setWidget(widget)
+        self.showDevInInfoScreen(devList)
+    def showDevInInfoScreen(self, devList):
+        infoList = []
+        devListInfo = []
+        for dev in devList:
+            devListInfo.append((dev, "未知"))
+        for i in range(4):
+            info = [2, "1234567890", "value",
+                    {"Modal": "Single",
+                    "Running": False,
+                    "Section": i,
+                    "SceneName": [],
+                    "Device": devListInfo}]
+            self.sendDataToTcp.emit("infoScreen", i // 2, json.dumps(info, ensure_ascii=False))
     def onGraphicWidgetIndex(self, devName):
         if devName:
             self.showDeviceInfoTimer.start(1000)
@@ -90,3 +108,9 @@ class DeviceGraphicWidget(QWidget):
 
     def onSelectedDevice(self, devList):
         self.showDevGraphic(devList)
+
+    def showEvent(self, QShowEvent):
+        for i in range(2):
+            info = [2, "1234567890", "setScreen", {}]
+            self.sendDataToTcp.emit("infoScreen", i, json.dumps(info, ensure_ascii=False))
+        self.showDevInInfoScreen(self.selectedDevList)

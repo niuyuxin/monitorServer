@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from miscutils import DeviceInfoWidget
+import json
 
 
 class SubDevDataWidget(QTableWidget):
@@ -75,6 +76,7 @@ class SubDevDataWidget(QTableWidget):
 
 
 class DevDataWidget(QWidget):
+    sendDataToTcp = pyqtSignal(str, int, str) # 屏幕，区号， 内容
     def __init__(self, subDevList=[], parent=None):
         super().__init__(parent)
         self.subDevDataWidgetList = []
@@ -103,3 +105,8 @@ class DevDataWidget(QWidget):
         self.hLayout.addWidget(self.scrollBar)
         self.setLayout(self.hLayout)
         self.hLayout.setSpacing(0)
+    def showEvent(self, QShowEvent):
+        for i in range(2):
+            info = [2, "1234567890", "setScreen", {}]
+            self.sendDataToTcp.emit("infoScreen", i, json.dumps(info, ensure_ascii=False))
+        pass
