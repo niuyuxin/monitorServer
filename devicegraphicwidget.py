@@ -5,6 +5,7 @@
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
+from tcpserver import *
 import  json
 
 from miscutils import DeviceInfoWidget, VerticalSlider
@@ -42,7 +43,7 @@ class GraphicWidget(QFrame):
 
 class DeviceGraphicWidget(QWidget):
     showDeviceInformation = pyqtSignal(str)
-    sendDataToTcp = pyqtSignal(str, int, str)
+    sendDataToTcp = pyqtSignal(str, int, list) # name, id, messageTypeId, action, data
     def __init__(self, subDevList=[], parent=None):
         super().__init__(parent)
         self.subDevList = subDevList
@@ -85,13 +86,13 @@ class DeviceGraphicWidget(QWidget):
         for dev in devList:
             devListInfo.append((dev, "未知"))
         for i in range(4):
-            info = [2, "1234567890", "value",
-                    {"Modal": "Single",
+            info = {"Modal": "Single",
                     "Running": False,
                     "Section": i,
                     "SceneName": [],
-                    "Device": devListInfo}]
-            self.sendDataToTcp.emit("infoScreen", i // 2, json.dumps(info, ensure_ascii=False))
+                    "Device": devListInfo}
+            li = [TcpServer.Call, TcpServer.SetScreenValue, info]
+            self.sendDataToTcp.emit("infoScreen", i // 2, li) # name, id, messageTypeId, action, data
     def onGraphicWidgetIndex(self, devName):
         if devName:
             self.showDeviceInfoTimer.start(1000)
@@ -111,6 +112,6 @@ class DeviceGraphicWidget(QWidget):
 
     def showEvent(self, QShowEvent):
         for i in range(2):
-            info = [2, "1234567890", "setScreen", {}]
-            self.sendDataToTcp.emit("infoScreen", i, json.dumps(info, ensure_ascii=False))
+            li = [TcpServer.Call, TcpServer.SetScreen, {}]
+            self.sendDataToTcp.emit("infoScreen", i, li)
         self.showDevInInfoScreen(self.selectedDevList)

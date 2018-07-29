@@ -8,7 +8,7 @@ from PyQt5.QtNetwork import QHostAddress
 class DataBaseException(Exception):pass
 class DataBase(QObject):
     dataBaseName = "TouchScreen.db"
-    dataBaseVersion = "180715.9"
+    dataBaseVersion = "180715.12"
     DeviceInfoTable = "DeviceInfo"
     PlayInfoTable = "PlayInfo"
     SceneInfoTable = "SceneInfo"
@@ -52,6 +52,7 @@ class DataBase(QObject):
                                 devName VARCHAR NOT NULL,
                                 devGroup VARCHAR NOT NULL,
                                 selfIndex VARCHAR NOT NULL,
+                                plcId VARCHAR NOT NULL,
                                 currentPos INTEGER,
                                 upLimitedPos INTEGER,
                                 downLimitedPos INTEGER,
@@ -133,17 +134,18 @@ class DataBase(QObject):
     def searchDeviceSet(self):pass
     def changeDeviceSet(self):pass
     def getAllDevicesInfo(self, subDevDict):
-        sqlQuery = QSqlQuery("SELECT * FROM DeviceInfo", self.dataBase)
-        rec = sqlQuery.record()
-        nameCol = rec.indexOf("devName")
-        groupCol = rec.indexOf("devGroup")
-        while sqlQuery.next():
-            devGroup = sqlQuery.value(groupCol)
-            if devGroup not in subDevDict.keys():
-                subDevDict[devGroup] = [sqlQuery.value(nameCol)]
-            else:
-                subDevDict[devGroup].append(sqlQuery.value(nameCol))
-
+        sqlQuery = QSqlQuery(self.dataBase)
+        if sqlQuery.exec_("SELECT * FROM DeviceInfo"):
+            rec = sqlQuery.record()
+            nameCol = rec.indexOf("devName")
+            groupCol = rec.indexOf("devGroup")
+            plcCol = rec.indexOf("plcId")
+            while sqlQuery.next():
+                devGroup = sqlQuery.value(groupCol)
+                if devGroup not in subDevDict.keys():
+                    subDevDict[devGroup] = [[sqlQuery.value(plcCol), sqlQuery.value(nameCol)]]
+                else:
+                    subDevDict[devGroup].append([sqlQuery.value(plcCol), sqlQuery.value(nameCol)])
     @pyqtSlot(str, list)
     def onCreateDevicesInfo(self, monitorName, devices):
         self.databaseState.emit(True)
@@ -151,9 +153,14 @@ class DataBase(QObject):
         ret = self.rmDeviceInfo(item="devGroup", value=monitorName, sqlQuery=sqlQuery)
         count = 0
         for dev in devices:
-            insertStr = """INSERT INTO DeviceInfo (devName, selfIndex, devGroup, targetPos, devSpeed) 
-                            VALUES ('{name}', '{index}', '{group}', {targetPos}, {devSpeed})"""\
-                        .format(name=dev, index=dev + ':' + str(count), group=monitorName, targetPos=1000, devSpeed=50)
+            insertStr = """INSERT INTO DeviceInfo (devName, selfIndex, devGroup, plcId, targetPos, devSpeed) 
+                            VALUES ('{name}', '{index}', '{group}', '{plcId}', {targetPos}, {devSpeed})"""\
+                        .format(name=dev[1],
+                                index=dev[1] + ':' + str(count),
+                                group=monitorName,
+                                plcId = dev[0],
+                                targetPos=1000,
+                                devSpeed=50)
             if not sqlQuery.exec_(insertStr):
                 print("[sqlQuery exec error]", insertStr)
             count += 1

@@ -7,6 +7,7 @@ from PyQt5.QtSql import QSqlQuery, QSqlRecord, QSqlDatabase
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from database import DataBase
+from tcpserver import *
 from ui import ui_deviceinfo
 import  collections
 import json
@@ -23,7 +24,7 @@ class DeviceInfo(QFrame, ui_deviceinfo.Ui_DeviceInfo):
         p = QPainter(self)
         self.style().drawPrimitive(QStyle.PE_Widget, opt, p, self)
 class DevProgramWidget(QWidget):
-    sendDataToTcp = pyqtSignal(str, int, str)
+    sendDataToTcp = pyqtSignal(str, int, list) # name, id, messageTypeId, action, data
     def __init__(self, parent = None):
         super().__init__(parent)
         self.dataBase = QSqlDatabase.addDatabase("QSQLITE", "DeviceAutoRunningWidgetConnection")
@@ -117,11 +118,11 @@ class DevProgramWidget(QWidget):
 
     def showEvent(self, QShowEvent):
         for i in range(4):
-            info = [2, "123", "Forbidden", {}]
-            self.sendDataToTcp.emit("TouchScreen", i, json.dumps(info, ensure_ascii=False))
+            li = [TcpServer.Call, TcpServer.ForbiddenDevice, {}]
+            self.sendDataToTcp.emit("TouchScreen", i, li)
         for i in range(2):
-            info = [2, "1234567890", "setScreen", 9]
-            self.sendDataToTcp.emit("infoScreen", i, json.dumps(info, ensure_ascii=False))
+            li = [TcpServer.Call, TcpServer.SetScreen, {1:1}]
+            self.sendDataToTcp.emit("infoScreen", i, li)
         self.showInfoScreen()
 
     # def hideEvent(self, QHideEvent):
@@ -142,25 +143,25 @@ class DevProgramWidget(QWidget):
                     for d in item[1]:
                         t = (d, 0, 0, True, False)
                         dev.append(t)
-                    info = [2, "1234567890", "value", {"Modal":"Program",
+                    info = {"Modal":"Program",
                             "Running": False,
                             "Section": count-begin,
                             "PlayName":self.playNameLabel.text(),
                             "SceneName":item[0][1],
-                            "Device":dev}]
+                            "Device":dev}
                     infoList.append(info)
                 count += 1
-            count = 0
             while len(infoList) < 4:
-                info = [2, "1234567890", "value", {"Modal": "Program",
+                info = {"Modal": "Program",
                         "Running": False,
                         "Section": count,
                         "PlayName": [],
                         "SceneName": [],
-                        "Device": []}]
+                        "Device": []}
                 infoList.append(info)
                 count += 1
             for i in range(4):
-                self.sendDataToTcp.emit("infoScreen", i//2, json.dumps(infoList[i], ensure_ascii=False))
+                li = [TcpServer.Call, TcpServer.SetScreenValue, infoList[i]]
+                self.sendDataToTcp.emit("infoScreen", i//2, li) # name, id, messageTypeId, action, data
         except Exception as e:
             print("showInfoScreen", str(e))

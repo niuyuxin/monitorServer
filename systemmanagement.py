@@ -100,6 +100,9 @@ class SystemManagement(QDialog, ui_systemmanagementwidget.Ui_SystemManagementWid
                 if entry.ip().protocol() == QAbstractSocket.IPv4Protocol:
                     networkInfo[face.humanReadableName()].append(entry.ip().toString())
                     networkInfo[face.humanReadableName()].append(entry.netmask().toString())
+                else:
+                    networkInfo[face.humanReadableName()].append("No Ipv4")
+                    networkInfo[face.humanReadableName()].append("")
         return networkInfo
     def onNetworkNameComboBoxCurrentTextChanged(self, text):
         self.ipLineEdit.setText(self.networkInfo[text][0])

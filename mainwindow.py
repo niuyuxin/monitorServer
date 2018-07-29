@@ -19,7 +19,7 @@ import collections
 class MainWindow(QWidget, ui_mainwindow.Ui_Form):
     getMonitorDevice = pyqtSignal(str, list)
     getPlaysInfo = pyqtSignal()
-    sendDataToTcp = pyqtSignal(str, int, str)
+    sendDataToTcp = pyqtSignal(str, int, list) # name, id, messageTypeId, action, data
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
@@ -68,7 +68,7 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
         self.tcpServer.moveToThread(self.tcpServerThread)
         self.tcpServer.getAllSubDev.connect(self.onTcpServerGetAllSubDev)
         self.tcpServer.selectedDevice.connect(self.devGraphicWidget.onSelectedDevice)
-        self.sendDataToTcp.connect(self.tcpServer.onSendData)
+        self.sendDataToTcp.connect(self.tcpServer.onDataToSend)
         self.tcpServerThread.start()
 
         # push button signal and slots
@@ -96,7 +96,7 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
         allDevice = []
         for key in self.monitorSubDevDict.keys():
             for dev in self.monitorSubDevDict[key]:
-                allDevice.append(dev)
+                allDevice.append(dev[1])
         return allDevice
     def showAllDeviceInWidget(self):
         if self.devDataWidget is not None:
