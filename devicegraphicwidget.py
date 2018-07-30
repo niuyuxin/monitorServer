@@ -47,7 +47,7 @@ class DeviceGraphicWidget(QWidget):
     def __init__(self, subDevList=[], parent=None):
         super().__init__(parent)
         self.subDevList = subDevList
-        self.selectedDevList = []
+        self.deviceStateList = {}
         self.deviceInfoWidget = DeviceInfoWidget(self)
         self.showDeviceInformation.connect(self.deviceInfoWidget.onDeviceInformation)
         self.showDeviceInfoTimer = QTimer()
@@ -59,40 +59,58 @@ class DeviceGraphicWidget(QWidget):
         self.layout.addWidget(self.tipsLabel)
         self.layout.addWidget(self.scrollArea)
         self.setLayout(self.layout)
-        self.showDevGraphic(devList=[])
-    def showDevGraphic(self, devList):
-        column = 0
-        row = 0
-        count = 0
-        layout = QGridLayout()
-        layout.setSpacing(0)
-        self.selectedDevList = devList
-        for subDev in devList:
-            if column > 10:
-                column = 0
-                row += 1
-            gWidget = GraphicWidget(count, subDev)
-            gWidget.graphicWidgetIndex.connect(self.onGraphicWidgetIndex)
-            layout.addWidget(gWidget, row, column)
-            column += 1
-            count += 1
-        widget = QWidget()
-        widget.setLayout(layout)
-        self.scrollArea.setWidget(widget)
-        self.showDevInInfoScreen(devList)
-    def showDevInInfoScreen(self, devList):
-        infoList = []
-        devListInfo = []
-        for dev in devList:
-            devListInfo.append((dev, "未知"))
-        for i in range(4):
+        self.showDevGraphic()
+    def showDevGraphic(self, sec=-1, devList = []):
+        try:
+            if sec == -1:
+                for i in range(4):
+                    self.deviceStateList[i] = []
+            else:
+                self.deviceStateList[sec] = devList
+            column = 0
+            row = 0
+            count = 0
+            layout = QGridLayout()
+            layout.setSpacing(0)
+            for (sec, subDev) in self.deviceStateList.items():
+                for dev in subDev:
+                    if column > 10:
+                        column = 0
+                        row += 1
+                    gWidget = GraphicWidget(count, dev[0])
+                    gWidget.graphicWidgetIndex.connect(self.onGraphicWidgetIndex)
+                    layout.addWidget(gWidget, row, column)
+                    column += 1
+                    count += 1
+            widget = QWidget()
+            widget.setLayout(layout)
+            self.scrollArea.setWidget(widget)
+            self.sendDevToInfoScreen()
+            self.broadCastSelectedDev()
+        except Exception as e:
+            print("show dev graphic", str(e))
+    def broadCastSelectedDev(self):
+        for sec, devList in self.deviceStateList.items():
+            info = {
+                "Section": sec,
+                "Device": devList
+            }
+            li = [TcpServer.Call, TcpServer.DeviceStateChanged, info]
+            for i in range(4):
+                self.sendDataToTcp.emit(TcpServer.TouchScreen, i, li)
+    def sendDevToInfoScreen(self):
+        for sec, devList in self.deviceStateList.items():
+            devListInfo = []
+            sec %= 4 # maximum screen in infoscreen
+            for dev in devList:
+                devListInfo.append(dev)
             info = {"Modal": "Single",
                     "Running": False,
-                    "Section": i,
+                    "Section": sec,
                     "SceneName": [],
                     "Device": devListInfo}
             li = [TcpServer.Call, TcpServer.SetScreenValue, info]
-            self.sendDataToTcp.emit("infoScreen", i // 2, li) # name, id, messageTypeId, action, data
+            self.sendDataToTcp.emit(TcpServer.InfoScreen, sec // 2, li) # name, id, messageTypeId, action, data
     def onGraphicWidgetIndex(self, devName):
         if devName:
             self.showDeviceInfoTimer.start(1000)
@@ -107,11 +125,12 @@ class DeviceGraphicWidget(QWidget):
         self.deviceInfoWidget.show()
         self.deviceInfoWidget.raise_()
 
-    def onSelectedDevice(self, devList):
-        self.showDevGraphic(devList)
+    @pyqtSlot(int, list)
+    def onSelectedDevice(self, sec, devList):
+        self.showDevGraphic(sec, devList)
 
     def showEvent(self, QShowEvent):
         for i in range(2):
             li = [TcpServer.Call, TcpServer.SetScreen, {}]
-            self.sendDataToTcp.emit("infoScreen", i, li)
-        self.showDevInInfoScreen(self.selectedDevList)
+            self.sendDataToTcp.emit(TcpServer.InfoScreen, i, li)
+        self.sendDevToInfoScreen()

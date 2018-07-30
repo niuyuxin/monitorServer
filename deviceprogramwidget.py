@@ -118,15 +118,17 @@ class DevProgramWidget(QWidget):
 
     def showEvent(self, QShowEvent):
         for i in range(4):
-            li = [TcpServer.Call, TcpServer.ForbiddenDevice, {}]
+            li = [TcpServer.Call, TcpServer.ForbiddenDevice, {"Enable":True}]
             self.sendDataToTcp.emit("TouchScreen", i, li)
         for i in range(2):
             li = [TcpServer.Call, TcpServer.SetScreen, {1:1}]
             self.sendDataToTcp.emit("infoScreen", i, li)
         self.showInfoScreen()
 
-    # def hideEvent(self, QHideEvent):
-    #     self.hideInfoScreen()
+    def hideEvent(self, QHideEvent):
+        for i in range(4):
+            li = [TcpServer.Call, TcpServer.ForbiddenDevice, {"Enable":False}]
+            self.sendDataToTcp.emit("TouchScreen", i, li)
 
     def onTestTimerTimeout(self):pass
         # self.hideInfoScreen()

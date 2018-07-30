@@ -11,10 +11,13 @@ import random
 class TcpServer(QObject):
     Modal = "Modal"
     getAllSubDev = pyqtSignal(str, list)
-    selectedDevice = pyqtSignal(list)
+    updateDeviceState = pyqtSignal(int, list)
     Call = 2
     CallResult = 3
     CallError = 4
+    InfoScreen = "infoScreen"
+    TouchScreen = "TouchScreen"
+    DeviceStateChanged = "DeviceStateChanged"
     ForbiddenDevice = "ForbiddenDevice"
     SetScreen = "setScreen"
     SetScreenValue = "value"
@@ -51,16 +54,19 @@ class TcpServer(QObject):
             print("socket accpet ", socketDict)
             b = QByteArray(bytes(r"Hello, New tcpSocket... [socket IpV4 = {}]".format(socket.peerAddress().toString()), encoding="UTF-8"))
             socket.write(b)
+
     @pyqtSlot()
     def onSocketDisconnect(self):
         socket = self.sender()
         count = 0
         for s in self.socketList:
             if s[TcpServer.MonitorSocket] == socket:
+                self.updateDeviceState.emit(s[TcpServer.MonitorId], [])
                 self.socketList.pop(count)
-                print("delete socket name", socket)
+                print("Delete socket: ", socket)
             count += 1
         socket.deleteLater()
+
     @pyqtSlot()
     def onReadyToRead(self):
         try:
@@ -76,7 +82,7 @@ class TcpServer(QObject):
             while socket.bytesAvailable():
                 allData = str(socket.readAll(), encoding='UTF-8')
                 dataList = allData.split('\0')
-                print("Received: ", len(dataList), dataList)
+                print("Received: ", len(dataList[0]), dataList)
                 for data in dataList:
                     if len(data) == 0: continue
                     dataJson = json.loads(data)
@@ -88,7 +94,7 @@ class TcpServer(QObject):
                                 socketDict[TcpServer.MonitorDeviceCount] = dataDict.get(TcpServer.MonitorDeviceCount)
                                 socketDict[TcpServer.MonitorName] = dataDict.get(TcpServer.MonitorName)
                                 message = [TcpServer.CallResult, dataJson[1], dataJson[2], {}]
-                                socket.write(bytes(json.dumps(message, ensure_ascii='UTF-8'), encoding='utf-8'))
+                                socket.write(bytes(json.dumps(message, ensure_ascii='UTF-8'), encoding='utf-8')+b'\0')
                                 socket.waitForBytesWritten()
                             else:
                                 socket.disconnectFromHost()
@@ -97,26 +103,28 @@ class TcpServer(QObject):
                                 if isinstance(dataJson[3], dict) and isinstance(dataJson[3][TcpServer.MonitorDevice], list):
                                     socketDict[TcpServer.MonitorDevice].extend(dataJson[3][TcpServer.MonitorDevice])
                                 if len(socketDict[TcpServer.MonitorDevice]) == socketDict[TcpServer.MonitorDeviceCount]:
+                                    self.updateDeviceState.emit(socketDict[TcpServer.MonitorId], [])
                                     self.getAllSubDev.emit(socketDict[TcpServer.MonitorName], socketDict[TcpServer.MonitorDevice])
                                 message = [TcpServer.CallResult, dataJson[1], dataJson[2], {}]
-                                socket.write(bytes(json.dumps(message, ensure_ascii='UTF-8'), encoding='utf-8'))
+                                socket.write(bytes(json.dumps(message, ensure_ascii='UTF-8'), encoding='utf-8')+b'\0')
                                 socket.waitForBytesWritten()
                         else:
-                            self.analysisData(dataJson[1], dataJson[2], dataJson[3])
+                            self.analysisData(socketDict, dataJson)
         except Exception as e:
             tempDict = {"Error:{}".format(str(e)): data}
             b = QByteArray(bytes(str(tempDict), encoding="UTF-8")).append("\n")
             socket.write(b)
 
-    def analysisData(self, unionId, action, dataDict):
-        if action == "SelectedDevice":
-            self.selectedDevice.emit(dataDict["Device"])
-        elif action == "helloworld":
-            pass
-        elif action == ".....":
-            pass
-        else:
-            print("Unknow request!")
+    def analysisData(self, socketDict, dataList):
+        try:
+            action = dataList[2]
+            if action == TcpServer.DeviceStateChanged:
+                id = int(socketDict[TcpServer.MonitorId])
+                self.updateDeviceState.emit(id, dataList[3]["Device"])
+            else:
+                print("Unknow request!")
+        except Exception as e:
+            print("analysis Data", str(e))
 
     def onDataToSend(self, name, id, messageList): # messageTypeId, action, data
         try:
@@ -125,7 +133,7 @@ class TcpServer(QObject):
                 message = messageList
             else:
                 message = [messageList[0], self.createUnionId(messageList[1]), messageList[1], messageList[2]]
-            self.sendDataToSocket(name, id, bytes(json.dumps(message, ensure_ascii='UTF-8'), encoding='utf-8'))
+            self.sendDataToSocket(name, id, bytes(json.dumps(message, ensure_ascii='UTF-8'), encoding='utf-8') + b'\0')
         except Exception as e:
             print("onDataToSend", str(e))
 

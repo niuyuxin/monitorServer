@@ -67,7 +67,7 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
         self.tcpServerThread = QThread()
         self.tcpServer.moveToThread(self.tcpServerThread)
         self.tcpServer.getAllSubDev.connect(self.onTcpServerGetAllSubDev)
-        self.tcpServer.selectedDevice.connect(self.devGraphicWidget.onSelectedDevice)
+        self.tcpServer.updateDeviceState.connect(self.devGraphicWidget.onSelectedDevice)
         self.sendDataToTcp.connect(self.tcpServer.onDataToSend)
         self.tcpServerThread.start()
 
