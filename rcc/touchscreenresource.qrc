@@ -5,6 +5,9 @@
     <file>images/database.jpg</file>
     <file>images/inverter.png</file>
     <file>images/steeve.jpg</file>
-    <file>images/loginpic.jpg</file>
+    <file>images/login-background.png</file>
+    <file>images/login-account.png</file>
+    <file>images/login-password.png</file>
+    <file>images/login-pushbutton-background.png</file>
   </qresource>
 </RCC>

@@ -24,7 +24,35 @@ QLabel#devPicLabel {
 
 }
 LoginWidget {
-    border-image:url(:/images/images/loginpic.jpg);
+    border-image:url(:/images/images/login-background.png);
+}
+/*
+QWidget#loginWidget{
+    background-color: transparent;
+}*/
+QLabel#accountLabel{
+    border-image:url(:/images/images/login-account.png);
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+    background-color: white
+}
+QLabel#passwdLabel{
+    border-image:url(:/images/images/login-password.png);
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+    background-color: white;
+}
+QPushButton#loginPushButton{
+    border-image:url(:/images/images/login-pushbutton-background.png);
+    border-radius: 8px;
+}
+QLineEdit#accountLineEdit{
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+QLineEdit#passwordLineEdit{
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
 }
 DeviceNetGraphic {
     background-color: green

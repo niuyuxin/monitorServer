@@ -15,6 +15,9 @@ class LoginWidget(QDialog):
         self.loginDialog = ui_loginwidget.Ui_loginWidget()
         self.loginDialog.setupUi(self.loginWidget)
         self.loginDialog.loginPushButton.clicked.connect(self.onLoginPushButtonClicked)
+        self.loginWidget.setFixedSize(600, 300)
+        self.loginWidget.setAttribute(Qt.WA_TranslucentBackground)
+
         self.showFullScreen()
 
         # Fixme: Auto login, for testing...
@@ -24,8 +27,10 @@ class LoginWidget(QDialog):
         self.loginDialog.loginPushButton.animateClick()
     def paintEvent(self, *args, **kwargs):
         rect = self.geometry()
-        x = int(rect.width() - self.loginWidget.width()*1.4) if rect.width() > self.loginWidget.width()*1.4 else 0
-        y = int(rect.height() - self.loginWidget.height()*1.4) if rect.height() > self.loginWidget.height()*1.4 else 0
+        # x = int(rect.width() - self.loginWidget.width()*1.4) if rect.width() > self.loginWidget.width()*1.4 else 0
+        # y = int(rect.height() - self.loginWidget.height()*1.4) if rect.height() > self.loginWidget.height()*1.4 else 0
+        x = int(rect.width()*0.5-self.loginWidget.width()*0.5)
+        y = int(rect.height()*0.5-self.loginWidget.height()*0.5)
         self.loginWidget.move(x, y)
     def onLoginPushButtonClicked(self):
         inputInfo = (self.loginDialog.accountLineEdit.text(), self.loginDialog.passwordLineEdit.text())

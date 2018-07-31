@@ -8,14 +8,19 @@ def getFunctionName():
     return sys._getframe().f_back.f_code.co_name
 
 class Config(QObject):
+    Version = "180719.7"
+    PlcIpStr = "PlcIp"
+    PlcPortStr = "PlcPort"
     SettingsName = "touchScreenServer.ini"
     def __init__(self, parent = None):
         super().__init__(parent)
         set = QSettings(Config.SettingsName, QSettings.IniFormat)
         set.setIniCodec(QTextCodec.codecForName("UTF-8"))
-        if set.value("Version") != "180719.6":
+        if set.value("Version") != Config.Version:
             set.clear()
-            set.setValue("Ip", "world")
+            set.setValue("Version", Config.Version)
+            set.setValue(Config.PlcIpStr, "192.168.1.100")
+            set.setValue(Config.PlcPortStr, "2000")
             self.cryptoSetValue("Password", "123", set)
             set.beginGroup("Account")
             set.setValue("User1", "root")

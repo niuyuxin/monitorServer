@@ -88,6 +88,14 @@ class SystemManagement(QDialog, ui_systemmanagementwidget.Ui_SystemManagementWid
             self.timer.start(1000)
         except Exception as e:
             print(str(e))
+        regExp = QRegExp(r"((2[0-4]\d|25[0-5]|[01]?\d\d?)\.){3}(2[0-4]\d|25[0-5]|[01]?\d\d?)")
+        self.plcIpLineEdit.setValidator(QRegExpValidator(regExp))
+        self.plcIpLineEdit.setText(Config.value(Config.PlcIpStr))
+        self.plcIpLineEdit.returnPressed.connect(self.onPlcIpLineEditReturnPressed)
+        regExp = QRegExp(r"([0-9]{4,})")
+        self.plcPortLineEdit.setValidator(QRegExpValidator(regExp))
+        self.plcPortLineEdit.setText(Config.value(Config.PlcPortStr))
+        self.plcPortLineEdit.returnPressed.connect(self.onPlcPortLineEditReturnPressed)
     def onServerIpLineEditingEditFinished(self):
         pass
     def getAllNetworkInterfaces(self):
@@ -114,3 +122,13 @@ class SystemManagement(QDialog, ui_systemmanagementwidget.Ui_SystemManagementWid
         self.timeLineEdit.setModified(False)
         (date, time) = self.timeLineEdit.text().split(" ")
         print("Todo: update system time", os.system('date {}'.format(date)))
+
+    def onPlcIpLineEditReturnPressed(self):
+        serverIpText = self.sender().text()
+        Config.setValue(Config.PlcIpStr, serverIpText)
+        self.somthingChanged.emit("PlcIp", serverIpText)
+
+    def onPlcPortLineEditReturnPressed(self):
+        serverPort = self.sender().text()
+        Config.setValue(Config.PlcPortStr, serverPort)
+        self.somthingChanged.emit("PlcPort", serverPort)

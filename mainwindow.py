@@ -14,9 +14,11 @@ from organizedplay import OrganizedPlay
 from database import DataBase
 from systemmanagement import *
 from devicenetgraphic import *
+from plcsocket import *
 import collections
 
 class MainWindow(QWidget, ui_mainwindow.Ui_Form):
+    plcSocketManagement = pyqtSignal(int)
     getMonitorDevice = pyqtSignal(str, list)
     getPlaysInfo = pyqtSignal()
     sendDataToTcp = pyqtSignal(str, int, list) # name, id, messageTypeId, action, data
@@ -70,6 +72,13 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
         self.tcpServer.updateDeviceState.connect(self.devGraphicWidget.onSelectedDevice)
         self.sendDataToTcp.connect(self.tcpServer.onDataToSend)
         self.tcpServerThread.start()
+
+        self.plcSocket = PlcSocket()
+        self.plcSocketThread = QThread()
+        self.plcSocket.moveToThread(self.plcSocketThread)
+        self.plcSocketManagement.connect(self.plcSocket.onTcpSocketManagement)
+        self.plcSocketThread.started.connect(self.plcSocket.initTcpSocket)
+        self.plcSocketThread.start()
 
         # push button signal and slots
         self.dataShowingPushButton.clicked.connect(self.onDataShowingPushButtonClicked)
@@ -144,6 +153,7 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
         if login.exec_():
             try:
                 sysManagement = SystemManagement()
+                sysManagement.somthingChanged.connect(self.onSysManagementSomthingChanged)
                 sysManagement.exec_()
             except Exception as e:
                 print(str(e))
@@ -155,3 +165,7 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
             deviceNetGraphic.exec_()
         except Exception as e:
             print(str(e))
+
+    @pyqtSlot(str, str)
+    def onSysManagementSomthingChanged(self, name, value):
+        self.plcSocketManagement.emit(1)
