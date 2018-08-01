@@ -8,7 +8,7 @@ from PyQt5.QtNetwork import QHostAddress
 class DataBaseException(Exception):pass
 class DataBase(QObject):
     dataBaseName = "TouchScreen.db"
-    dataBaseVersion = "180715.12"
+    dataBaseVersion = "180715.14"
     DeviceInfoTable = "DeviceInfo"
     PlayInfoTable = "PlayInfo"
     SceneInfoTable = "SceneInfo"
@@ -51,6 +51,8 @@ class DataBase(QObject):
                                 id INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE NOT NULL,
                                 devName VARCHAR NOT NULL,
                                 devGroup VARCHAR NOT NULL,
+                                devUserState INT2,
+                                devPlcState INT4,
                                 selfIndex VARCHAR NOT NULL,
                                 plcId VARCHAR NOT NULL,
                                 currentPos INTEGER,

@@ -48,7 +48,7 @@ class PlcSocket(QObject):
             self.tcpSocket.connectToHost(QHostAddress(socketIp), socketPort)
         elif self.tcpSocket.state() == QAbstractSocket.ConnectingState:
             self.tcpState.emit(self.tcpSocket.state())
-            print("Connecting...", QDateTime.currentDateTime().toString("hh:mm:ss.zzz"))
+            # print("Connecting...", QDateTime.currentDateTime().toString("hh:mm:ss.zzz"))
 
     @pyqtSlot()
     def onTcpSocketReadyRead(self):

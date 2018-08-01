@@ -122,7 +122,7 @@ class TcpServer(QObject):
                 id = int(socketDict[TcpServer.MonitorId])
                 self.updateDeviceState.emit(id, dataList[3]["Device"])
             else:
-                print("Unknow request!")
+                print("Unknow request: {}".format(action))
         except Exception as e:
             print("analysis Data", str(e))
 
