@@ -4,6 +4,8 @@
 from PyQt5.QtNetwork import *
 from PyQt5.QtCore import *
 from config import  *
+from PyQt5.QtSql import *
+from database import  *
 import ast
 import json
 import random
@@ -30,6 +32,7 @@ class TcpServer(QObject):
     UpdateDevice = "UpdateDevice"
     def __init__(self):
         super().__init__()
+        self.dataBase =  self.openDatabaseForName("TcpServerConnection")
         self.tcpServer = QTcpServer(self) # should have parent
         self.sendCount = 0
         self.socketList = []
@@ -105,7 +108,10 @@ class TcpServer(QObject):
                                 if len(socketDict[TcpServer.MonitorDevice]) == socketDict[TcpServer.MonitorDeviceCount]:
                                     self.updateDeviceState.emit(socketDict[TcpServer.MonitorId], [])
                                     self.getAllSubDev.emit(socketDict[TcpServer.MonitorName], socketDict[TcpServer.MonitorDevice])
-                                message = [TcpServer.CallResult, dataJson[1], dataJson[2], {}]
+                                devInfo = []
+                                for dev in dataJson[3][TcpServer.MonitorDevice]:
+                                    devInfo.append([dev[1], self.getDevCtrlWord(dev[1], self.dataBase)])
+                                message = [TcpServer.CallResult, dataJson[1], dataJson[2], {"Device":devInfo}]
                                 socket.write(bytes(json.dumps(message, ensure_ascii='UTF-8'), encoding='utf-8')+b'\0')
                                 socket.waitForBytesWritten()
                         else:
@@ -154,3 +160,23 @@ class TcpServer(QObject):
         time = QDateTime.currentDateTime().toString("yyMMddhhmmsszzz")
         self.sendCount += 1
         return str(type) + '-' + time + '-' + str(self.sendCount)
+
+    def openDatabaseForName(self, connectionName):
+        dataBase = QSqlDatabase.addDatabase("QSQLITE", connectionName)
+        dataBase.setDatabaseName(DataBase.dataBaseName)
+        dataBase.setUserName("root")
+        dataBase.setPassword("123456")
+        if not dataBase.open():
+            print("{} opened failure".format(connectionName))
+            return None
+        else:
+            QSqlQuery("PRAGMA synchronous = OFF;", dataBase)
+            return dataBase
+    def getDevCtrlWord(self, devName, dataBase):
+        if not isinstance(dataBase, QSqlDatabase):
+            return
+        sqlQuery = QSqlQuery(dataBase)
+        if sqlQuery.exec_("""SELECT devPlcState FROM DeviceInfo WHERE devName='{}'""".format(devName)):
+            if sqlQuery.next():
+                return sqlQuery.value(0)
+

@@ -98,14 +98,32 @@ class DevDataWidget(QWidget):
         self.scrollBar = QScrollBar()
         self.scrollBar.setRange(0, perSubWidgetDevNumber)
         columnName = [self.tr("实际位置"), self.tr("上软限"), self.tr("下软限"), self.tr("限位开关")]
-        self.hLayout = QHBoxLayout()
+        self.subDevLayout = QHBoxLayout()
         for subWidget in self.subDevDataWidgetList:
             s = SubDevDataWidget(subWidget, columnName)
             self.scrollBar.valueChanged.connect(s.verticalScrollBar().setValue)
-            self.hLayout.addWidget(s)
-        self.hLayout.addWidget(self.scrollBar)
-        self.setLayout(self.hLayout)
-        self.hLayout.setSpacing(0)
+            self.subDevLayout.addWidget(s)
+        self.subDevLayout.addWidget(self.scrollBar)
+        self.setLayout(self.subDevLayout)
+        self.subDevLayout.setSpacing(0)
+        self.testTimer = QTimer()
+        self.testTimer.timeout.connect(self.onUpdateDevInfo)
+        self.testTimer.start(1000)
+    def onUpdateDevInfo(self):
+        try:
+            for i in range(self.subDevLayout.count()):
+                subDevWidget = self.subDevLayout.itemAt(i).widget()
+                if isinstance(subDevWidget, SubDevDataWidget):
+                    for i in range(subDevWidget.rowCount()):
+                        devName = subDevWidget.verticalHeaderItem(i).text()
+                        posItem = subDevWidget.itemAt(i, 0)
+                        upLimitItem = subDevWidget.itemAt(i, 1)
+                        downLimitItem = subDevWidget.itemAt(i, 2)
+                        upReached = subDevWidget.cellWidget(i, 3).layout().itemAt(0).widget()
+                        downReached = subDevWidget.cellWidget(i, 3).layout().itemAt(0).widget()
+        except Exception as e:
+            print("on Update dev Info", str(e))
+
     def showEvent(self, QShowEvent):
         for i in range(2):
             li = [TcpServer.Call, TcpServer.SetScreen, {}]

@@ -96,6 +96,13 @@ class DataBase(QObject):
                 if sqlQuery.exec_(insertStr):
                     print("insert Plays success", name, id)
 
+    def openDatabaseForName(self, dataBase, connectionName):
+        dataBase = QSqlDatabase.addDatabase("QSQLITE", connectionName)
+        dataBase.setDatabaseName(DataBase.dataBaseName)
+        dataBase.setUserName("root")
+        dataBase.setPassword("123456")
+        if not dataBase.open():
+            print("{} opened failure".format(connectionName))
 
     def rmPlays(self, table = "", item = dict()):
         print("select Record", item)

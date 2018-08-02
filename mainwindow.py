@@ -15,6 +15,7 @@ from database import DataBase
 from systemmanagement import *
 from devicenetgraphic import *
 from plcsocket import *
+from globalvariable import  GlobalVal
 import collections
 
 class MainWindow(QWidget, ui_mainwindow.Ui_Form):
@@ -22,33 +23,31 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
     getMonitorDevice = pyqtSignal(str, list)
     getPlaysInfo = pyqtSignal()
     sendDataToTcp = pyqtSignal(str, int, list) # name, id, messageTypeId, action, data
+
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
         self.initMainWindow()
     def initMainWindow(self):
-        # real time object
-        self.rtc = QTimer()
-        self.rtc.timeout.connect(self.onRtcTimeout)
-        self.onRtcTimeout()
-        self.rtc.start(1000)
-
-        # create mysql database
-        self.monitorSubDevDict = {}
-        self.dataBase = DataBase()
-        self.dataBase.getAllDevicesInfo(self.monitorSubDevDict)
-        self.dataBase.databaseState.connect(self.onDatabaseState)
-        self.dataBaseThread = QThread()
-        self.dataBase.moveToThread(self.dataBaseThread)
-        self.getMonitorDevice.connect(self.dataBase.onCreateDevicesInfo)
-        self.dataBaseThread.start()
-
         # create Device Data Widget
         self.devDataWidget = None
         self.devGraphicWidget = None
         self.devProgramWidget  = None
         self.contentWidgetList = []
-
+        # real time object
+        self.rtc = QTimer()
+        self.rtc.timeout.connect(self.onRtcTimeout)
+        self.onRtcTimeout()
+        self.rtc.start(1000)
+        # create mysql database
+        self.dataBase = DataBase()
+        self.dataBase.getAllDevicesInfo(GlobalVal.monitorSubDevDict)
+        self.dataBase.databaseState.connect(self.onDatabaseState)
+        self.dataBaseThread = QThread()
+        self.dataBase.moveToThread(self.dataBaseThread)
+        self.getMonitorDevice.connect(self.dataBase.onCreateDevicesInfo)
+        self.dataBaseThread.start()
+        # frame
         self.contentFrameLayout = QHBoxLayout()
         self.contentFrame.setLayout(self.contentFrameLayout)
         # self.contentFrameLayout.setContentsMargins(0,0,0,0)
@@ -63,7 +62,6 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
         self.contentWidgetList.append(self.devProgramWidget)
         self.devProgramWidget.sendDataToTcp.connect(self.sendDataToTcp)
         self.showAllDeviceInWidget()
-
         # create tcp server, main function...
         self.tcpServer = TcpServer()
         self.tcpServerThread = QThread()
@@ -72,7 +70,7 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
         self.tcpServer.updateDeviceState.connect(self.devGraphicWidget.onSelectedDevice)
         self.sendDataToTcp.connect(self.tcpServer.onDataToSend)
         self.tcpServerThread.start()
-
+        # plc Socket
         self.plcSocket = PlcSocket()
         self.plcSocketThread = QThread()
         self.plcSocket.moveToThread(self.plcSocketThread)
@@ -87,24 +85,27 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
         self.organizedPlayPushButton.clicked.connect(self.onOrganizedPlayPushButtonClicked)
         self.systemManagementPushButton.clicked.connect(self.onSystemManagementPushButtonClicked)
         self.netFramePushButton.clicked.connect(self.onNetFramePushButtonClicked)
+
     def onRtcTimeout(self):
         self.timeLabel.setText(QDateTime.currentDateTime().toString("yyyy-MM-dd hh:mm:ss"))
+
     @pyqtSlot(str, list)
     def onTcpServerGetAllSubDev(self, monitorName, subDev):
-        if self.monitorSubDevDict.get(monitorName) == subDev:
-            print("Got same monitor device!")
+        if GlobalVal.monitorSubDevDict.get(monitorName) == subDev:
+            print("Got same monitor device!", subDev)
             return
-        if self.monitorSubDevDict.get(monitorName) is None:
-            self.monitorSubDevDict.setdefault(monitorName, subDev)
+        if GlobalVal.monitorSubDevDict.get(monitorName) is None:
+            GlobalVal.monitorSubDevDict.setdefault(monitorName, subDev)
         else:
-            self.monitorSubDevDict[monitorName] = subDev
+            GlobalVal.monitorSubDevDict[monitorName] = subDev
         self.getMonitorDevice.emit(monitorName, subDev)
         print("some thing changed...", subDev)
         self.showAllDeviceInWidget()
+
     def getAllDevice(self):
         allDevice = []
-        for key in self.monitorSubDevDict.keys():
-            for dev in self.monitorSubDevDict[key]:
+        for key in GlobalVal.monitorSubDevDict.keys():
+            for dev in GlobalVal.monitorSubDevDict[key]:
                 allDevice.append(dev[1])
         return allDevice
     def showAllDeviceInWidget(self):

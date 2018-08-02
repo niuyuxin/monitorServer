@@ -6,10 +6,10 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from tcpserver import *
+from globalvariable import  GlobalVal
 import  json
 
 from miscutils import DeviceInfoWidget, VerticalSlider
-
 
 class GraphicWidget(QFrame):
     graphicWidgetIndex = pyqtSignal(str)
@@ -47,7 +47,6 @@ class DeviceGraphicWidget(QWidget):
     def __init__(self, subDevList=[], parent=None):
         super().__init__(parent)
         self.subDevList = subDevList
-        self.deviceStateList = {}
         self.deviceInfoWidget = DeviceInfoWidget(self)
         self.showDeviceInformation.connect(self.deviceInfoWidget.onDeviceInformation)
         self.showDeviceInfoTimer = QTimer()
@@ -64,15 +63,15 @@ class DeviceGraphicWidget(QWidget):
         try:
             if sec == -1:
                 for i in range(4):
-                    self.deviceStateList[i] = []
+                    GlobalVal.deviceStateList[i] = []
             else:
-                self.deviceStateList[sec] = devList
+                GlobalVal.deviceStateList[sec] = devList
             column = 0
             row = 0
             count = 0
             layout = QGridLayout()
             layout.setSpacing(0)
-            for (sec, subDev) in self.deviceStateList.items():
+            for (sec, subDev) in GlobalVal.deviceStateList.items():
                 for dev in subDev:
                     if column > 10:
                         column = 0
@@ -90,16 +89,16 @@ class DeviceGraphicWidget(QWidget):
         except Exception as e:
             print("show dev graphic", str(e))
     def broadCastSelectedDev(self):
-        for sec, devList in self.deviceStateList.items():
+        for sec, devList in GlobalVal.deviceStateList.items():
             info = {
                 "Section": sec,
                 "Device": devList
             }
             li = [TcpServer.Call, TcpServer.DeviceStateChanged, info]
-            for i in range(4):
+            for i in range(4): # Fixme: 由服务器来广播会更好
                 self.sendDataToTcp.emit(TcpServer.TouchScreen, i, li)
     def sendDevToInfoScreen(self):
-        for sec, devList in self.deviceStateList.items():
+        for sec, devList in GlobalVal.deviceStateList.items():
             devListInfo = []
             sec %= 4 # maximum screen in infoscreen
             for dev in devList:

@@ -31,9 +31,9 @@ class DevProgramWidget(QWidget):
         self.dataBase.setDatabaseName(DataBase.dataBaseName)
         self.dataBase.setUserName("root")
         self.dataBase.setPassword("123456")
-        self.scenes = collections.OrderedDict()
         if not self.dataBase.open():
             print("OrganizedPlay database opened failure")
+        self.scenes = collections.OrderedDict()
         self.playNameLabel = QLabel("剧目名称")
         self.playNameLabel.setAlignment(Qt.AlignHCenter)
         self.sceneNameLabel = QLabel("场次名称")
