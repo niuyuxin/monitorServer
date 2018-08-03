@@ -4,7 +4,7 @@
 from PyQt5.QtSql import QSqlQuery, QSqlDatabase, QSqlRecord
 from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
 from PyQt5.QtNetwork import QHostAddress
-
+from globalvariable import *
 class DataBaseException(Exception):pass
 class DataBase(QObject):
     dataBaseName = "TouchScreen.db"
@@ -142,19 +142,32 @@ class DataBase(QObject):
     def rmDeviceSet(self):pass
     def searchDeviceSet(self):pass
     def changeDeviceSet(self):pass
-    def getAllDevicesInfo(self, subDevDict):
+    def getAllDevices(self, subDevDict, detailInfoList):
         sqlQuery = QSqlQuery(self.dataBase)
         if sqlQuery.exec_("SELECT * FROM DeviceInfo"):
             rec = sqlQuery.record()
             nameCol = rec.indexOf("devName")
             groupCol = rec.indexOf("devGroup")
             plcCol = rec.indexOf("plcId")
+            upperLimitCol = rec.indexOf("upLimitedPos")
+            lowerLimitCol = rec.indexOf("downLimitedPos")
+            targetPosCol = rec.indexOf("targetPos")
             while sqlQuery.next():
                 devGroup = sqlQuery.value(groupCol)
+                plcId = sqlQuery.value(plcCol)
+                name = sqlQuery.value(nameCol)
+                upperLimit = sqlQuery.value(upperLimitCol)
+                lowerLimit = sqlQuery.value(lowerLimitCol)
+                targetPos = sqlQuery.value(targetPosCol)
                 if devGroup not in subDevDict.keys():
-                    subDevDict[devGroup] = [[sqlQuery.value(plcCol), sqlQuery.value(nameCol)]]
+                    subDevDict[devGroup] = [[plcId, name]]
                 else:
-                    subDevDict[devGroup].append([sqlQuery.value(plcCol), sqlQuery.value(nameCol)])
+                    subDevDict[devGroup].append([plcId, name])
+                dev = DevAttr(plcId, name)
+                dev.targetPos = targetPos if targetPos else 0
+                dev.upLimitedPos = upperLimit if upperLimit else 0
+                dev.downLimitedPos = lowerLimit if lowerLimit else 0
+                detailInfoList.append(dev)
     @pyqtSlot(str, list)
     def onCreateDevicesInfo(self, monitorName, devices):
         self.databaseState.emit(True)
@@ -188,3 +201,11 @@ class DataBase(QObject):
         return ret
     def searchDeviceInfo(self):pass
     def changeDeviceInfo(self):pass
+    def onSavingParaSetting(self, devName, targetPos, upperLimit, lowerLimit):
+        sqlQuery = QSqlQuery(self.dataBase)
+        if sqlQuery.exec_("""UPDATE DeviceInfo 
+                            SET upLimitedPos={},downLimitedPos={},targetPos={} 
+                            WHERE devName='{}'""".format(upperLimit, lowerLimit, targetPos, devName)):
+            pass
+        else:
+            print("...error")

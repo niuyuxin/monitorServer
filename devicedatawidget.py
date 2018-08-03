@@ -7,7 +7,7 @@ from PyQt5.QtGui import *
 from miscutils import DeviceInfoWidget
 from tcpserver import  *
 import json
-
+from globalvariable import  *
 
 class SubDevDataWidget(QTableWidget):
     showDeviceInfo = pyqtSignal(str)  # Fixme: this type should be 'subDev' type, just for testing in here.
@@ -23,9 +23,25 @@ class SubDevDataWidget(QTableWidget):
         self.setRowCount(len(subDeviceList))
         self.horizontalHeader().setStyleSheet("QHeaderView::section{background:skyblue;}")
         self.setHorizontalHeaderLabels(column)
-        self.setVerticalHeaderLabels(subDeviceList)
+        vHeaderLabels = []
+        for dev in subDeviceList:
+            vHeaderLabels.append(dev.devName)
+        self.setVerticalHeaderLabels(vHeaderLabels)
         try:  # try to create sub contents
             for i in range(len(subDeviceList)):
+                self.subDeviceList[i].valueChanged.connect(self.onDevAttrValueChanged)
+                item = QTableWidgetItem() # 位置
+                item.setTextAlignment(Qt.AlignHCenter)
+                item.setText(str(subDeviceList[i].currentPos))
+                self.setItem(i, 0, item)
+                item = QTableWidgetItem() # 上限
+                item.setTextAlignment(Qt.AlignHCenter)
+                item.setText(str(subDeviceList[i].upLimitedPos))
+                self.setItem(i, 1, item)
+                item = QTableWidgetItem() # 下限
+                item.setTextAlignment(Qt.AlignHCenter)
+                item.setText(str(subDeviceList[i].downLimitedPos))
+                self.setItem(i, 2, item)
                 upCheckBox = QCheckBox("上限")
                 downCheckBox = QCheckBox("下限")
                 widget = QWidget()
@@ -37,10 +53,6 @@ class SubDevDataWidget(QTableWidget):
                 layout.setAlignment(Qt.AlignHCenter)
                 widget.setLayout(layout)
                 self.setCellWidget(i, 3, widget)
-                for c in range(3):
-                    tableWidgetItem = QTableWidgetItem()
-                    tableWidgetItem.setText("None")
-                    self.setItem(i, c, tableWidgetItem)
         except Exception as e:
             print(str(e))
         # attribute setting, read code...
@@ -59,7 +71,7 @@ class SubDevDataWidget(QTableWidget):
     def onCellEntered(self, row, column):
         if row != self.mouseInRow:
             self.triggerInfoDisplayTimer.start(1000)
-            self.showDeviceInfo.emit(self.subDeviceList[row])
+            self.showDeviceInfo.emit(self.subDeviceList[row].devName)
             self.devInformationWidget.hide()
             self.mouseInRow = row
 
@@ -75,7 +87,25 @@ class SubDevDataWidget(QTableWidget):
         self.triggerInfoDisplayTimer.stop()
         self.devInformationWidget.show()
 
-
+    def onDevAttrValueChanged(self, id, name):
+        try:
+            dev = self.sender()
+            if not isinstance(dev, DevAttr):
+                return
+            for rc in range(self.rowCount()):
+                if self.verticalHeaderItem(rc).text() == name:
+                    posItem = self.item(rc, 0)
+                    upLimitItem = self.item(rc, 1)
+                    downLimitItem = self.item(rc, 2)
+                    upReached = self.cellWidget(rc, 3).layout().itemAt(0).widget()
+                    downReached = self.cellWidget(rc, 3).layout().itemAt(1).widget()
+                    posItem.setText(str(dev.currentPos))
+                    upLimitItem.setText(str(dev.upLimitedPos))
+                    downLimitItem.setText(str(dev.downLimitedPos))
+                    upReached.setChecked(dev.getStateWord(DevAttr.SW_UpperLimit))
+                    downReached.setChecked(dev.getStateWord(DevAttr.SW_LowerLimit))
+        except Exception as e:
+            print("on Dev Attr value changed", str(e))
 class DevDataWidget(QWidget):
     sendDataToTcp = pyqtSignal(str, int, list) # name, id, messageTypeId, action, data
     def __init__(self, subDevList=[], parent=None):
@@ -106,23 +136,6 @@ class DevDataWidget(QWidget):
         self.subDevLayout.addWidget(self.scrollBar)
         self.setLayout(self.subDevLayout)
         self.subDevLayout.setSpacing(0)
-        self.testTimer = QTimer()
-        self.testTimer.timeout.connect(self.onUpdateDevInfo)
-        self.testTimer.start(1000)
-    def onUpdateDevInfo(self):
-        try:
-            for i in range(self.subDevLayout.count()):
-                subDevWidget = self.subDevLayout.itemAt(i).widget()
-                if isinstance(subDevWidget, SubDevDataWidget):
-                    for i in range(subDevWidget.rowCount()):
-                        devName = subDevWidget.verticalHeaderItem(i).text()
-                        posItem = subDevWidget.itemAt(i, 0)
-                        upLimitItem = subDevWidget.itemAt(i, 1)
-                        downLimitItem = subDevWidget.itemAt(i, 2)
-                        upReached = subDevWidget.cellWidget(i, 3).layout().itemAt(0).widget()
-                        downReached = subDevWidget.cellWidget(i, 3).layout().itemAt(0).widget()
-        except Exception as e:
-            print("on Update dev Info", str(e))
 
     def showEvent(self, QShowEvent):
         for i in range(2):

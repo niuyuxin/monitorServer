@@ -14,11 +14,13 @@ class TcpServer(QObject):
     Modal = "Modal"
     getAllSubDev = pyqtSignal(str, list)
     updateDeviceState = pyqtSignal(int, list)
+    updateParaSetting = pyqtSignal(int, dict)
     Call = 2
     CallResult = 3
     CallError = 4
     InfoScreen = "infoScreen"
     TouchScreen = "TouchScreen"
+    ParaSetting = "ParaSetting"
     DeviceStateChanged = "DeviceStateChanged"
     ForbiddenDevice = "ForbiddenDevice"
     SetScreen = "setScreen"
@@ -110,7 +112,9 @@ class TcpServer(QObject):
                                     self.getAllSubDev.emit(socketDict[TcpServer.MonitorName], socketDict[TcpServer.MonitorDevice])
                                 devInfo = []
                                 for dev in dataJson[3][TcpServer.MonitorDevice]:
-                                    devInfo.append([dev[1], self.getDevCtrlWord(dev[1], self.dataBase)])
+                                    data = [dev[1]]
+                                    data.extend(self.getDevInfo(dev[1]))
+                                    devInfo.append(data)
                                 message = [TcpServer.CallResult, dataJson[1], dataJson[2], {"Device":devInfo}]
                                 socket.write(bytes(json.dumps(message, ensure_ascii='UTF-8'), encoding='utf-8')+b'\0')
                                 socket.waitForBytesWritten()
@@ -127,6 +131,8 @@ class TcpServer(QObject):
             if action == TcpServer.DeviceStateChanged:
                 id = int(socketDict[TcpServer.MonitorId])
                 self.updateDeviceState.emit(id, dataList[3]["Device"])
+            elif action == TcpServer.ParaSetting:
+                self.updateParaSetting.emit(-1, dataList[3])
             else:
                 print("Unknow request: {}".format(action))
         except Exception as e:
@@ -172,11 +178,8 @@ class TcpServer(QObject):
         else:
             QSqlQuery("PRAGMA synchronous = OFF;", dataBase)
             return dataBase
-    def getDevCtrlWord(self, devName, dataBase):
-        if not isinstance(dataBase, QSqlDatabase):
-            return
-        sqlQuery = QSqlQuery(dataBase)
-        if sqlQuery.exec_("""SELECT devPlcState FROM DeviceInfo WHERE devName='{}'""".format(devName)):
-            if sqlQuery.next():
-                return sqlQuery.value(0)
-
+    def getDevInfo(self, devName):
+        for dev in GlobalVal.devInfoList:
+            if dev.devName == devName:
+                return [dev.targetPos, dev.upLimitedPos, dev.downLimitedPos, dev.ctrlWord]
+        return []

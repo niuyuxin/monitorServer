@@ -6,22 +6,25 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from tcpserver import *
-from globalvariable import  GlobalVal
+from globalvariable import  *
 import  json
 
 from miscutils import DeviceInfoWidget, VerticalSlider
 
 class GraphicWidget(QFrame):
     graphicWidgetIndex = pyqtSignal(str)
-
-    def __init__(self, index, device=None, parent=None):
+    setVerticalSliderValue = pyqtSignal(int, int, int)
+    def __init__(self, index, device, parent=None):
         super().__init__(parent)
         self.devIndex = index
         try:
-            self.verticalSlider = VerticalSlider(bottomLimit=10000, topLimit=90000, mValue=99999)
+            self.verticalSlider = VerticalSlider(bottomLimit=device.downLimitedPos, topLimit=device.upLimitedPos, mValue=99999)
+            self.setVerticalSliderValue.connect(self.verticalSlider.setFraction)
         except Exception as e:
             print(str(e))
-        self.devNameLabel = QLabel(self.tr(device))
+        self.device = device
+        self.device.valueChanged.connect(self.onDevAttrValueChanged)
+        self.devNameLabel = QLabel(device.devName)
         self.speedNameLabel = QLabel(self.tr("速度:"))
         self.speedLabel = QLabel("****")
         hLayout = QHBoxLayout()
@@ -38,6 +41,13 @@ class GraphicWidget(QFrame):
     def leaveEvent(self, *args, **kwargs):
         self.graphicWidgetIndex.emit("")
 
+    def onDevAttrValueChanged(self, id, name):
+        dev = self.sender()
+        if not isinstance(dev, DevAttr):
+            return
+        self.setVerticalSliderValue.emit(dev.currentPos, dev.upLimitedPos, dev.downLimitedPos)
+        pass
+
     def enterEvent(self, *args, **kwargs):
         self.graphicWidgetIndex.emit(self.devNameLabel.text())
 
@@ -47,6 +57,7 @@ class DeviceGraphicWidget(QWidget):
     def __init__(self, subDevList=[], parent=None):
         super().__init__(parent)
         self.subDevList = subDevList
+        self.operateDevList = {}
         self.deviceInfoWidget = DeviceInfoWidget(self)
         self.showDeviceInformation.connect(self.deviceInfoWidget.onDeviceInformation)
         self.showDeviceInfoTimer = QTimer()
@@ -59,28 +70,22 @@ class DeviceGraphicWidget(QWidget):
         self.layout.addWidget(self.scrollArea)
         self.setLayout(self.layout)
         self.showDevGraphic()
-    def showDevGraphic(self, sec=-1, devList = []):
+    def showDevGraphic(self, devList=[]):
         try:
-            if sec == -1:
-                for i in range(4):
-                    GlobalVal.deviceStateList[i] = []
-            else:
-                GlobalVal.deviceStateList[sec] = devList
             column = 0
             row = 0
             count = 0
             layout = QGridLayout()
             layout.setSpacing(0)
-            for (sec, subDev) in GlobalVal.deviceStateList.items():
-                for dev in subDev:
-                    if column > 10:
-                        column = 0
-                        row += 1
-                    gWidget = GraphicWidget(count, dev[0])
-                    gWidget.graphicWidgetIndex.connect(self.onGraphicWidgetIndex)
-                    layout.addWidget(gWidget, row, column)
-                    column += 1
-                    count += 1
+            for dev in devList:
+                if column > 10:
+                    column = 0
+                    row += 1
+                gWidget = GraphicWidget(count, dev)
+                gWidget.graphicWidgetIndex.connect(self.onGraphicWidgetIndex)
+                layout.addWidget(gWidget, row, column)
+                column += 1
+                count += 1
             widget = QWidget()
             widget.setLayout(layout)
             self.scrollArea.setWidget(widget)
@@ -89,7 +94,7 @@ class DeviceGraphicWidget(QWidget):
         except Exception as e:
             print("show dev graphic", str(e))
     def broadCastSelectedDev(self):
-        for sec, devList in GlobalVal.deviceStateList.items():
+        for sec, devList in self.operateDevList.items():
             info = {
                 "Section": sec,
                 "Device": devList
@@ -98,7 +103,7 @@ class DeviceGraphicWidget(QWidget):
             for i in range(4): # Fixme: 由服务器来广播会更好
                 self.sendDataToTcp.emit(TcpServer.TouchScreen, i, li)
     def sendDevToInfoScreen(self):
-        for sec, devList in GlobalVal.deviceStateList.items():
+        for sec, devList in self.operateDevList.items():
             devListInfo = []
             sec %= 4 # maximum screen in infoscreen
             for dev in devList:
@@ -125,8 +130,27 @@ class DeviceGraphicWidget(QWidget):
         self.deviceInfoWidget.raise_()
 
     @pyqtSlot(int, list)
-    def onSelectedDevice(self, sec, devList):
-        self.showDevGraphic(sec, devList)
+    def onUpdateDeviceState(self, sec, devList):
+        try:
+            devAttrList = []
+            if sec == -1:
+                self.operateDevList = {}
+            else:
+                if sec in self.operateDevList.keys():
+                    for oldDev in self.operateDevList[sec]:
+                        for devInfo in GlobalVal.devInfoList:
+                            if devInfo.devName == oldDev[0]:
+                                devInfo.clearCtrlWord(DevAttr.CW_Selected)
+                self.operateDevList[sec] = devList
+                for sec in self.operateDevList.values():
+                    for dev in sec:
+                        for devInfo in GlobalVal.devInfoList:
+                            if devInfo.devName == dev[0] and dev[1] == 1:
+                                devInfo.setCtrlWord(DevAttr.CW_Selected)
+                                devAttrList.append(devInfo)
+            self.showDevGraphic(devAttrList)
+        except Exception as e:
+            print("onUpdateDeviceState", str(e))
 
     def showEvent(self, QShowEvent):
         for i in range(2):

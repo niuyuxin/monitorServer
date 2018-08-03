@@ -15,7 +15,7 @@ from database import DataBase
 from systemmanagement import *
 from devicenetgraphic import *
 from plcsocket import *
-from globalvariable import  GlobalVal
+from globalvariable import *
 import collections
 
 class MainWindow(QWidget, ui_mainwindow.Ui_Form):
@@ -23,7 +23,7 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
     getMonitorDevice = pyqtSignal(str, list)
     getPlaysInfo = pyqtSignal()
     sendDataToTcp = pyqtSignal(str, int, list) # name, id, messageTypeId, action, data
-
+    savingParaSetting = pyqtSignal(str, int, int, int)
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
@@ -41,11 +41,12 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
         self.rtc.start(1000)
         # create mysql database
         self.dataBase = DataBase()
-        self.dataBase.getAllDevicesInfo(GlobalVal.monitorSubDevDict)
+        self.dataBase.getAllDevices(GlobalVal.monitorSubDevDict, GlobalVal.devInfoList)
         self.dataBase.databaseState.connect(self.onDatabaseState)
         self.dataBaseThread = QThread()
         self.dataBase.moveToThread(self.dataBaseThread)
         self.getMonitorDevice.connect(self.dataBase.onCreateDevicesInfo)
+        self.savingParaSetting.connect(self.dataBase.onSavingParaSetting)
         self.dataBaseThread.start()
         # frame
         self.contentFrameLayout = QHBoxLayout()
@@ -67,7 +68,8 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
         self.tcpServerThread = QThread()
         self.tcpServer.moveToThread(self.tcpServerThread)
         self.tcpServer.getAllSubDev.connect(self.onTcpServerGetAllSubDev)
-        self.tcpServer.updateDeviceState.connect(self.devGraphicWidget.onSelectedDevice)
+        self.tcpServer.updateDeviceState.connect(self.devGraphicWidget.onUpdateDeviceState)
+        self.tcpServer.updateParaSetting.connect(self.onTcpServerUpdateSetting)
         self.sendDataToTcp.connect(self.tcpServer.onDataToSend)
         self.tcpServerThread.start()
         # plc Socket
@@ -92,7 +94,7 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
     @pyqtSlot(str, list)
     def onTcpServerGetAllSubDev(self, monitorName, subDev):
         if GlobalVal.monitorSubDevDict.get(monitorName) == subDev:
-            print("Got same monitor device!", subDev)
+            print("Got same monitor device!", monitorName, subDev)
             return
         if GlobalVal.monitorSubDevDict.get(monitorName) is None:
             GlobalVal.monitorSubDevDict.setdefault(monitorName, subDev)
@@ -100,6 +102,7 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
             GlobalVal.monitorSubDevDict[monitorName] = subDev
         self.getMonitorDevice.emit(monitorName, subDev)
         print("some thing changed...", subDev)
+        GlobalVal.devInfoList = self.createDevInfoDict() # 需要等待数据库创建完成以后再生成此变量
         self.showAllDeviceInWidget()
 
     def getAllDevice(self):
@@ -108,12 +111,20 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
             for dev in GlobalVal.monitorSubDevDict[key]:
                 allDevice.append(dev[1])
         return allDevice
+
+    def createDevInfoDict(self):
+        devInfo = []
+        for key in GlobalVal.monitorSubDevDict.keys():
+            for dev in GlobalVal.monitorSubDevDict[key]:
+                devInfo.append(DevAttr(dev[0], dev[1]))
+        return devInfo
+
     def showAllDeviceInWidget(self):
         if self.devDataWidget is not None:
             self.contentWidgetList.remove(self.devDataWidget)
             self.contentFrameLayout.removeWidget(self.devDataWidget)
             self.devDataWidget.deleteLater()
-        self.devDataWidget = DevDataWidget(self.getAllDevice())  # new widget
+        self.devDataWidget = DevDataWidget(GlobalVal.devInfoList)  # new widget
         self.devDataWidget.sendDataToTcp.connect(self.sendDataToTcp)
         self.contentFrameLayout.addWidget(self.devDataWidget)
         self.contentWidgetList.append(self.devDataWidget)
@@ -170,3 +181,24 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
     @pyqtSlot(str, str)
     def onSysManagementSomthingChanged(self, name, value):
         self.plcSocketManagement.emit(1)
+
+    @pyqtSlot(int, dict)
+    def onTcpServerUpdateSetting(self, sec, setting):
+        try:
+            id = setting["DevId"]
+            targetPos =  setting["targetPos"]
+            UpLimited = setting["UpLimited"]
+            DownLimited = setting["DownLimited"]
+            for dev in GlobalVal.devInfoList:
+                if dev.devId == id:
+                    dev.targetPos = targetPos
+                    dev.upLimitedPos = UpLimited
+                    dev.downLimitedPos = DownLimited
+                    if dev.targetPos > 100:
+                        dev.setStateWord(DevAttr.SW_LowerLimit)
+                    else:
+                        dev.clearStateWord(DevAttr.SW_LowerLimit)
+                    dev.valueChanged.emit(dev.devId, dev.devName)
+                    self.savingParaSetting.emit(dev.devName, targetPos, UpLimited, DownLimited)
+        except Exception as e:
+            print("On Tcp Server update Setting", str(e))

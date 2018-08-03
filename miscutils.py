@@ -80,15 +80,12 @@ class VerticalSlider(QWidget):
     TOPMARGIN = 20.0
     BOTTOMMARGIN = 20.0
     valueChanged = pyqtSignal(int, int)
-    def __init__(self, name = None, topLimit = None, bottomLimit = None, act =0, mValue=10, parent=None):
+    def __init__(self, name = None, topLimit = None, bottomLimit = None, act =0, mValue=99999, parent=None):
         super().__init__(parent)
         self.actValue = act
         self.maxValue = mValue
-        if topLimit > bottomLimit and topLimit < mValue:
-            self.topLimit = topLimit
-            self.bottomLimit = bottomLimit
-        else:
-            raise ValueError("topLimit or bottomLimit error")
+        self.topLimit = topLimit
+        self.bottomLimit = bottomLimit
         self.devName = name
         self.setFocusPolicy(Qt.WheelFocus)
         self.setSizePolicy(QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding))
@@ -100,18 +97,19 @@ class VerticalSlider(QWidget):
         fm = QFontMetricsF(font)
         return QSize(VerticalSlider.XMARGIN*26+fm.height(), VerticalSlider.TOPMARGIN + fm.height()  * 15)
 
-    def setFraction(self, actValue, maxValue=None):
-        if maxValue is not None:
-            if 3 <= maxValue <= 99999:
-                self.maxValue = maxValue
-            else:
-                raise ValueError("denominator out of range")
+    def setFraction(self, actValue, upperLimit, lowerLimit):
+        # if maxValue is not None:
+        #     if 3 <= maxValue <= 99999:
+        #         self.maxValue = maxValue
+        #     else:
+        #         raise ValueError("denominator out of range")
+        self.maxValue = 99999
         if 0 <= actValue <= self.maxValue:
             self.actValue = actValue
         else:
             raise ValueError("numerator out of range")
-        self.topLimit = float(0.7)*self.maxValue
-        self.bottomLimit = float(0.3)*self.maxValue
+        self.topLimit = upperLimit
+        self.bottomLimit = lowerLimit
         self.update()
         self.updateGeometry()
 
