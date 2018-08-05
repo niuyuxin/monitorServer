@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from tcpserver import *
-from globalvariable import  *
+from devattr import  *
 import  json
 
 from miscutils import DeviceInfoWidget, VerticalSlider
@@ -136,17 +136,19 @@ class DeviceGraphicWidget(QWidget):
             if sec == -1:
                 self.operateDevList = {}
             else:
-                if sec in self.operateDevList.keys():
+                if sec in self.operateDevList.keys(): # 清除旧数据
                     for oldDev in self.operateDevList[sec]:
-                        for devInfo in GlobalVal.devInfoList:
+                        for devInfo in DevAttr.devAttrList:
                             if devInfo.devName == oldDev[0]:
                                 devInfo.clearCtrlWord(DevAttr.CW_Selected)
+                                devInfo.section = -1
                 self.operateDevList[sec] = devList
-                for sec in self.operateDevList.values():
-                    for dev in sec:
-                        for devInfo in GlobalVal.devInfoList:
+                for sec in self.operateDevList.keys():
+                    for dev in self.operateDevList[sec]:
+                        for devInfo in DevAttr.devAttrList:
                             if devInfo.devName == dev[0] and dev[1] == 1:
                                 devInfo.setCtrlWord(DevAttr.CW_Selected)
+                                devInfo.section = sec
                                 devAttrList.append(devInfo)
             self.showDevGraphic(devAttrList)
         except Exception as e:

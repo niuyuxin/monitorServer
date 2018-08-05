@@ -5,9 +5,9 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from miscutils import DeviceInfoWidget
-from tcpserver import  *
+from tcpserver import *
 import json
-from globalvariable import  *
+from devattr import *
 
 class SubDevDataWidget(QTableWidget):
     showDeviceInfo = pyqtSignal(str)  # Fixme: this type should be 'subDev' type, just for testing in here.

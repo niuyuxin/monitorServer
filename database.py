@@ -4,7 +4,7 @@
 from PyQt5.QtSql import QSqlQuery, QSqlDatabase, QSqlRecord
 from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
 from PyQt5.QtNetwork import QHostAddress
-from globalvariable import *
+from devattr import *
 class DataBaseException(Exception):pass
 class DataBase(QObject):
     dataBaseName = "TouchScreen.db"
@@ -181,7 +181,7 @@ class DataBase(QObject):
                                 index=dev[1] + ':' + str(count),
                                 group=monitorName,
                                 plcId = dev[0],
-                                targetPos=1000,
+                                targetPos=0,
                                 devSpeed=50)
             if not sqlQuery.exec_(insertStr):
                 print("[sqlQuery exec error]", insertStr)

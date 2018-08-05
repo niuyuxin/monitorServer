@@ -15,12 +15,16 @@ class TcpServer(QObject):
     getAllSubDev = pyqtSignal(str, list)
     updateDeviceState = pyqtSignal(int, list)
     updateParaSetting = pyqtSignal(int, dict)
+    operationalCtrl = pyqtSignal(int, dict)
+    speedSet = pyqtSignal(int, dict)
     Call = 2
     CallResult = 3
     CallError = 4
     InfoScreen = "infoScreen"
     TouchScreen = "TouchScreen"
     ParaSetting = "ParaSetting"
+    OperationalCtrl = "OperationalCtrl"
+    SpeedSet = "SpeedSet"
     DeviceStateChanged = "DeviceStateChanged"
     ForbiddenDevice = "ForbiddenDevice"
     SetScreen = "setScreen"
@@ -128,11 +132,15 @@ class TcpServer(QObject):
     def analysisData(self, socketDict, dataList):
         try:
             action = dataList[2]
+            id = int(socketDict[TcpServer.MonitorId])
             if action == TcpServer.DeviceStateChanged:
-                id = int(socketDict[TcpServer.MonitorId])
                 self.updateDeviceState.emit(id, dataList[3]["Device"])
             elif action == TcpServer.ParaSetting:
                 self.updateParaSetting.emit(-1, dataList[3])
+            elif action == TcpServer.OperationalCtrl:
+                self.operationalCtrl.emit(id, dataList[3])
+            elif action == TcpServer.SpeedSet:
+                self.speedSet.emit(id, dataList[3])
             else:
                 print("Unknow request: {}".format(action))
         except Exception as e:
@@ -179,7 +187,7 @@ class TcpServer(QObject):
             QSqlQuery("PRAGMA synchronous = OFF;", dataBase)
             return dataBase
     def getDevInfo(self, devName):
-        for dev in GlobalVal.devInfoList:
+        for dev in DevAttr.devAttrList:
             if dev.devName == devName:
                 return [dev.targetPos, dev.upLimitedPos, dev.downLimitedPos, dev.ctrlWord]
         return []

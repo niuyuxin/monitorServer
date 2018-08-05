@@ -5,7 +5,7 @@ from PyQt5.QtNetwork import *
 from PyQt5.QtCore import *
 from config import *
 import collections
-from globalvariable import GlobalVal
+from devattr import DevAttr
 
 class PlcSocket(QObject):
     tcpState=pyqtSignal(int)
@@ -65,8 +65,8 @@ class PlcSocket(QObject):
             if len(self.tcpSocketBuffer) != PlcSocket.MaxBufferSize:
                 return
             time = QDateTime.currentDateTime().toString("hh:mm:ss.zzz")
-            # print("Read data, size = {}:{}".
-            #       format(len(self.tcpSocketBuffer), self.tcpSocketBuffer), time)
+            print("Read data, size = {}:{}".
+                  format(len(self.tcpSocketBuffer), self.tcpSocketBuffer), time)
             self.callReturn()
         except Exception as e:
             print("onTcpSocketReadyRead", str(e))
@@ -89,62 +89,65 @@ class PlcSocket(QObject):
             print("on tcp socket abort()")
 
     def callReturn(self):
-        count = 0
-        devInfoList = []
-        for devList in GlobalVal.monitorSubDevDict.values():
-            devInfoList.extend(devList)
-        sendBuffer = QByteArray()
-        for dev in devInfoList:
-            infoList = self.getDevInfoForName(dev[1])
-            devid = int(dev[0][8:])&0xff
-            order = 0
-            infoList.insert(0, order)
-            infoList.insert(0, devid)
-            sendBuffer.append(bytes(infoList))
+        """
+        对plc的发送做出响应
+        :return:
+        """
+        try:
+            sendBuffer = QByteArray()
+            count = 0
+            for devAttr in DevAttr.devAttrList:
+                infoList = self.getDevInfo(devAttr)
+                devid = int(devAttr.devId[8:])&0xff
+                infoList.insert(0, 0) # order
+                infoList.insert(0, devid) # devId
+                while len(infoList) < 20:
+                    infoList.append(0)
+                sendBuffer.append(bytes(infoList))
+                count += 1
+                if count >= 100: break
+            # data = sendBuffer
+            # dataList = []
+            # for i in range(0, data.size(), 20):
+            #     dataList.append(bytes(data.mid(i, 20).toHex()))
+            # print(dataList)
+            self.tcpSocket.write(sendBuffer)
+            self.tcpSocket.waitForBytesWritten()
+        except Exception as e:
+            print("call return ", str(e))
 
-        print(sendBuffer.toHex())
-        # self.testCount += 1
-        # fillZero = []
-        # for i in range(self.testCount, 20 + self.testCount):
-        #     fillZero.append(i & 0xff)
-        # temp = bytes(fillZero)
-        # print('send', QByteArray(temp).toHex())
-        # self.tcpSocket.write(QByteArray(temp))
-        # self.tcpSocket.waitForBytesWritten()
-
-    def getDevCtrlWordForName(self, devName):
-        byteInfo = 0
-        for devInfo in GlobalVal.deviceStateList.values():
-            if not devInfo: continue
-            d = False
-            for dev in devInfo:
-                if dev[0] == devName:
-                    d = True
-                    if dev[1] == 1: # 选通
-                        byteInfo |= (1<<13)
-                    if dev[1] == 2: # 禁用
-                        byteInfo |= (1<<5)
-                    if dev[1] == 4: # 旁路
-                        byteInfo |= (1<<14)
-                    if GlobalVal.singleCtrlOperation == -1: # 下降
-                        byteInfo |= (0x4<<8)
-                    elif GlobalVal.singleCtrlOperation == 1: # 上升
-                        byteInfo |= (0x1<<8)
-                    else: # 停止
-                        byteInfo |= (0x2<<8)
-            if d:
-                return byteInfo&0xffff
-        return byteInfo&0xffff
-
-    def getDevInfoForName(self, devName): # 返回 速度、目标位置、控制字、上软限、下软限
-        speed = GlobalVal.singleCtrlSpeed
-        targetPos = 0
-        cWord = self.getDevCtrlWordForName(devName)
-        upLimit = 9000 # 从数据库获取数据
-        downLimit = 0
+    def getDevInfo(self, dev):
+        """
+        :param dev: 要获取的设备
+        :return: 返回 速度、目标位置、控制字、上软限、下软限
+        """
+        if dev.section in DevAttr.singleCtrlSpeed.keys():
+            speed = DevAttr.singleCtrlSpeed[dev.section]
+        else:
+            speed = 0
+        targetPos = dev.targetPos
+        cWord = self.getDevCtrlWord(dev)
+        upLimit = dev.upLimitedPos
+        downLimit = dev.downLimitedPos
         return [(speed>>8)&0xff, speed&0xff,
                 (targetPos>>24)&0xff, (targetPos>>16)&0xff, (targetPos>>8)&0xff, (targetPos)&0xff,
                 (cWord>>8)&0xff, cWord&0xff,
                 (upLimit >> 24) & 0xff, (upLimit >> 16) & 0xff, (upLimit >> 8) & 0xff, (upLimit) & 0xff,
                 (downLimit >> 24) & 0xff, (downLimit >> 16) & 0xff, (downLimit >> 8) & 0xff, (downLimit) & 0xff]
+
+    def getDevCtrlWord(self, dev):
+        ctrlWord = dev.ctrlWord
+        ctrlWord &= (~(DevAttr.CW_Raise | DevAttr.CW_Drop | DevAttr.CW_Stop))
+        if dev.section in DevAttr.singleCtrlOperation.keys():
+            if DevAttr.singleCtrlOperation[dev.section] == -1: # 下降
+                ctrlWord |= DevAttr.CW_Drop
+            elif DevAttr.singleCtrlOperation[dev.section] == 1: # 上升
+                ctrlWord |= DevAttr.CW_Raise
+            else: # 停止
+                ctrlWord |= DevAttr.CW_Stop
+        else:
+            ctrlWord |= DevAttr.CW_Stop
+
+        return ctrlWord&0xffff
+
 

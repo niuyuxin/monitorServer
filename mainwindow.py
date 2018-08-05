@@ -15,7 +15,7 @@ from database import DataBase
 from systemmanagement import *
 from devicenetgraphic import *
 from plcsocket import *
-from globalvariable import *
+from devattr import *
 import collections
 
 class MainWindow(QWidget, ui_mainwindow.Ui_Form):
@@ -41,7 +41,7 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
         self.rtc.start(1000)
         # create mysql database
         self.dataBase = DataBase()
-        self.dataBase.getAllDevices(GlobalVal.monitorSubDevDict, GlobalVal.devInfoList)
+        self.dataBase.getAllDevices(DevAttr.monitorSubDevDict, DevAttr.devAttrList)
         self.dataBase.databaseState.connect(self.onDatabaseState)
         self.dataBaseThread = QThread()
         self.dataBase.moveToThread(self.dataBaseThread)
@@ -70,6 +70,8 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
         self.tcpServer.getAllSubDev.connect(self.onTcpServerGetAllSubDev)
         self.tcpServer.updateDeviceState.connect(self.devGraphicWidget.onUpdateDeviceState)
         self.tcpServer.updateParaSetting.connect(self.onTcpServerUpdateSetting)
+        self.tcpServer.operationalCtrl.connect(self.onTcpServerOperationalCtrl)
+        self.tcpServer.speedSet.connect(self.onTcpServerSpeedSet)
         self.sendDataToTcp.connect(self.tcpServer.onDataToSend)
         self.tcpServerThread.start()
         # plc Socket
@@ -93,29 +95,29 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
 
     @pyqtSlot(str, list)
     def onTcpServerGetAllSubDev(self, monitorName, subDev):
-        if GlobalVal.monitorSubDevDict.get(monitorName) == subDev:
+        if DevAttr.monitorSubDevDict.get(monitorName) == subDev:
             print("Got same monitor device!", monitorName, subDev)
             return
-        if GlobalVal.monitorSubDevDict.get(monitorName) is None:
-            GlobalVal.monitorSubDevDict.setdefault(monitorName, subDev)
+        if DevAttr.monitorSubDevDict.get(monitorName) is None:
+            DevAttr.monitorSubDevDict.setdefault(monitorName, subDev)
         else:
-            GlobalVal.monitorSubDevDict[monitorName] = subDev
+            DevAttr.monitorSubDevDict[monitorName] = subDev
         self.getMonitorDevice.emit(monitorName, subDev)
         print("some thing changed...", subDev)
-        GlobalVal.devInfoList = self.createDevInfoDict() # 需要等待数据库创建完成以后再生成此变量
+        DevAttr.devAttrList = self.createDevInfoDict() # 需要等待数据库创建完成以后再生成此变量
         self.showAllDeviceInWidget()
 
     def getAllDevice(self):
         allDevice = []
-        for key in GlobalVal.monitorSubDevDict.keys():
-            for dev in GlobalVal.monitorSubDevDict[key]:
+        for key in DevAttr.monitorSubDevDict.keys():
+            for dev in DevAttr.monitorSubDevDict[key]:
                 allDevice.append(dev[1])
         return allDevice
 
     def createDevInfoDict(self):
         devInfo = []
-        for key in GlobalVal.monitorSubDevDict.keys():
-            for dev in GlobalVal.monitorSubDevDict[key]:
+        for key in DevAttr.monitorSubDevDict.keys():
+            for dev in DevAttr.monitorSubDevDict[key]:
                 devInfo.append(DevAttr(dev[0], dev[1]))
         return devInfo
 
@@ -124,7 +126,7 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
             self.contentWidgetList.remove(self.devDataWidget)
             self.contentFrameLayout.removeWidget(self.devDataWidget)
             self.devDataWidget.deleteLater()
-        self.devDataWidget = DevDataWidget(GlobalVal.devInfoList)  # new widget
+        self.devDataWidget = DevDataWidget(DevAttr.devAttrList)  # new widget
         self.devDataWidget.sendDataToTcp.connect(self.sendDataToTcp)
         self.contentFrameLayout.addWidget(self.devDataWidget)
         self.contentWidgetList.append(self.devDataWidget)
@@ -189,7 +191,7 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
             targetPos =  setting["targetPos"]
             UpLimited = setting["UpLimited"]
             DownLimited = setting["DownLimited"]
-            for dev in GlobalVal.devInfoList:
+            for dev in DevAttr.devAttrList:
                 if dev.devId == id:
                     dev.targetPos = targetPos
                     dev.upLimitedPos = UpLimited
@@ -202,3 +204,11 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
                     self.savingParaSetting.emit(dev.devName, targetPos, UpLimited, DownLimited)
         except Exception as e:
             print("On Tcp Server update Setting", str(e))
+
+    @pyqtSlot(int, dict)
+    def onTcpServerOperationalCtrl(self, sec, content):
+        DevAttr.singleCtrlOperation[sec] = content["State"]
+
+    @pyqtSlot(int, dict)
+    def onTcpServerSpeedSet(self, sec, content):
+        DevAttr.singleCtrlSpeed[sec] = content["Value"]
