@@ -42,11 +42,13 @@ class GraphicWidget(QFrame):
         self.graphicWidgetIndex.emit("")
 
     def onDevAttrValueChanged(self, id, name):
-        dev = self.sender()
-        if not isinstance(dev, DevAttr):
-            return
-        self.setVerticalSliderValue.emit(dev.currentPos, dev.upLimitedPos, dev.downLimitedPos)
-        pass
+        try:
+            dev = self.sender()
+            if not isinstance(dev, DevAttr):
+                return
+            self.setVerticalSliderValue.emit(dev.currentPos, dev.upLimitedPos, dev.downLimitedPos)
+        except Exception as e:
+            print("onDevAttrValue changed", str(e))
 
     def enterEvent(self, *args, **kwargs):
         self.graphicWidgetIndex.emit(self.devNameLabel.text())
@@ -114,7 +116,7 @@ class DeviceGraphicWidget(QWidget):
                     "SceneName": [],
                     "Device": devListInfo}
             li = [TcpServer.Call, TcpServer.SetScreenValue, info]
-            self.sendDataToTcp.emit(TcpServer.InfoScreen, sec // 2, li) # name, id, messageTypeId, action, data
+            self.sendDataToTcp.emit(TcpServer.InfoScreen, 0, li) # name, id, messageTypeId, action, data
     def onGraphicWidgetIndex(self, devName):
         if devName:
             self.showDeviceInfoTimer.start(1000)
@@ -155,7 +157,6 @@ class DeviceGraphicWidget(QWidget):
             print("onUpdateDeviceState", str(e))
 
     def showEvent(self, QShowEvent):
-        for i in range(2):
-            li = [TcpServer.Call, TcpServer.SetScreen, {}]
-            self.sendDataToTcp.emit(TcpServer.InfoScreen, i, li)
+        li = [TcpServer.Call, TcpServer.SetScreen, {}]
+        self.sendDataToTcp.emit(TcpServer.InfoScreen, i, li)
         self.sendDevToInfoScreen()

@@ -185,8 +185,9 @@ class EditingDevAction(QDialog, ui_editingdevicedialog.Ui_EditingDevDialog):
             print(str(e))
     def onOkUserChangedPushButton(self):
         widget = self.selectedListWidget.currentItem()
-        widget.targetPos = self.posSpinBox.value()
-        widget.speed = self.speedSpinBox.value()
+        if widget is not None:
+            widget.targetPos = self.posSpinBox.value()
+            widget.speed = self.speedSpinBox.value()
     def onCancelUserChangedPushButton(self):
         pass
     def onApplyPushButtonClicked(self):

@@ -24,6 +24,9 @@ class PlcSocket(QObject):
         self.connectTimer = QTimer(self)
         self.connectTimer.timeout.connect(self.connectServer, Qt.DirectConnection)
         self.connectTimer.start(1000)
+        self.updateTimer = QTimer(self)
+        self.updateTimer.timeout.connect(self.callReturn)
+        self.updateTimer.start(1000)
 
     @pyqtSlot()
     def onTcpSocketConnected(self):
@@ -65,9 +68,10 @@ class PlcSocket(QObject):
             if len(self.tcpSocketBuffer) != PlcSocket.MaxBufferSize:
                 return
             time = QDateTime.currentDateTime().toString("hh:mm:ss.zzz")
-            print("Read data, size = {}:{}".
-                  format(len(self.tcpSocketBuffer), self.tcpSocketBuffer), time)
-            self.callReturn()
+            self.updateDevAttr(bytes(self.tcpSocketBuffer))
+            # print("Read data, size = {}:{}".
+            #       format(len(self.tcpSocketBuffer), QByteArray(bytes(self.tcpSocketBuffer)).toHex()), time)
+            # self.callReturn()
         except Exception as e:
             print("onTcpSocketReadyRead", str(e))
 
@@ -93,6 +97,7 @@ class PlcSocket(QObject):
         对plc的发送做出响应
         :return:
         """
+        if self.tcpSocket.state() != QAbstractSocket.ConnectedState: return
         try:
             sendBuffer = QByteArray()
             count = 0
@@ -100,7 +105,9 @@ class PlcSocket(QObject):
                 infoList = self.getDevInfo(devAttr)
                 devid = int(devAttr.devId[8:])&0xff
                 infoList.insert(0, 0) # order
-                infoList.insert(0, devid) # devId
+                infoList.insert(0, 0)
+                infoList.insert(0, (devid)&0xff) # devId
+                infoList.insert(0, (devid>>8)&0xff)
                 while len(infoList) < 20:
                     infoList.append(0)
                 sendBuffer.append(bytes(infoList))
@@ -150,4 +157,14 @@ class PlcSocket(QObject):
 
         return ctrlWord&0xffff
 
+    def updateDevAttr(self, data):
+        try:
+            for i in range(0, len(data), 20):
+                dataInfo = data[i:i + 20]
+                for dev in DevAttr.devAttrList:
+                    if int(dev.devId[8:]) == dataInfo[1]:
+                        dev.currentPos = (dataInfo[10]<<24 | dataInfo[11]<<16 | dataInfo[12] << 8 | dataInfo[13])
+                        dev.valueChanged.emit(dev.devId, dev.devName)
+        except Exception as e:
+            print("update dev attr", str(e))
 

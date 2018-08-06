@@ -138,7 +138,6 @@ class DevDataWidget(QWidget):
         self.subDevLayout.setSpacing(0)
 
     def showEvent(self, QShowEvent):
-        for i in range(2):
-            li = [TcpServer.Call, TcpServer.SetScreen, {}]
-            self.sendDataToTcp.emit("infoScreen", i, li) # name, id, messageTypeId, action, data
+        li = [TcpServer.Call, TcpServer.SetScreen, {}]
+        self.sendDataToTcp.emit(TcpServer.InfoScreen, 0, li) # name, id, messageTypeId, action, data
         pass

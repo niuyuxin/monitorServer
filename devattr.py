@@ -13,7 +13,6 @@ class DevAttr(QObject):
     valueChanged = pyqtSignal(str, str)
     monitorSubDevDict = {} # 所有监视器内的设备
     devAttrList = []
-    deviceStateList = {}  # 设备状态列表
     singleCtrlOperation = {} # 单控运行标志
     singleCtrlSpeed = {}
     def __init__(self, id, name, parent=None):

@@ -120,9 +120,8 @@ class DevProgramWidget(QWidget):
         for i in range(4):
             li = [TcpServer.Call, TcpServer.ForbiddenDevice, {"Enable":True}]
             self.sendDataToTcp.emit("TouchScreen", i, li)
-        for i in range(2):
-            li = [TcpServer.Call, TcpServer.SetScreen, {1:1}]
-            self.sendDataToTcp.emit("infoScreen", i, li)
+        li = [TcpServer.Call, TcpServer.SetScreen, {1:1}]
+        self.sendDataToTcp.emit(TcpServer.InfoScreen, 0, li)
         self.showInfoScreen()
 
     def hideEvent(self, QHideEvent):
@@ -164,6 +163,6 @@ class DevProgramWidget(QWidget):
                 count += 1
             for i in range(4):
                 li = [TcpServer.Call, TcpServer.SetScreenValue, infoList[i]]
-                self.sendDataToTcp.emit("infoScreen", i//2, li) # name, id, messageTypeId, action, data
+                self.sendDataToTcp.emit(TcpServer.InfoScreen, 0, li) # name, id, messageTypeId, action, data
         except Exception as e:
             print("showInfoScreen", str(e))

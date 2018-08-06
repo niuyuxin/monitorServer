@@ -103,16 +103,21 @@ class VerticalSlider(QWidget):
         #         self.maxValue = maxValue
         #     else:
         #         raise ValueError("denominator out of range")
-        self.maxValue = 99999
-        if 0 <= actValue <= self.maxValue:
-            self.actValue = actValue
-        else:
-            raise ValueError("numerator out of range")
-        self.topLimit = upperLimit
-        self.bottomLimit = lowerLimit
-        self.update()
-        self.updateGeometry()
-
+        try:
+            self.maxValue = 99999
+            if 0 <= actValue <= self.maxValue:
+                self.actValue = actValue
+            else:
+                if self.actValue > self.maxValue:
+                    self.actValue = self.maxValue
+                if self.actValue < 0:
+                    self.actValue = 0
+            self.topLimit = upperLimit
+            self.bottomLimit = lowerLimit
+            self.update()
+            self.updateGeometry()
+        except Exception as e:
+            print("set Fraction", str(e))
     # def mousePressEvent(self, event):
     #     if event.button() == Qt.LeftButton:
     #         self.moveSlider(event.y())
