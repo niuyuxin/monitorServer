@@ -96,7 +96,7 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
     @pyqtSlot(str, list)
     def onTcpServerGetAllSubDev(self, monitorName, subDev):
         if DevAttr.monitorSubDevDict.get(monitorName) == subDev:
-            print("Got same monitor device!", monitorName, subDev)
+            print("Got same monitor device!", monitorName)
             return
         if DevAttr.monitorSubDevDict.get(monitorName) is None:
             DevAttr.monitorSubDevDict.setdefault(monitorName, subDev)

@@ -16,7 +16,7 @@ class LoginWidget(QDialog):
         self.loginDialog.setupUi(self.loginWidget)
         self.loginDialog.loginPushButton.clicked.connect(self.onLoginPushButtonClicked)
         self.loginWidget.setFixedSize(600, 300)
-        self.loginWidget.setAttribute(Qt.WA_TranslucentBackground)
+        # self.loginWidget.setAttribute(Qt.WA_TranslucentBackground)
 
         self.showFullScreen()
 
