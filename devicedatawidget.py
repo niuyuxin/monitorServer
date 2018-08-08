@@ -21,7 +21,7 @@ class SubDevDataWidget(QTableWidget):
         self.mouseInColumn = 0
         self.setColumnCount(len(column))
         self.setRowCount(len(subDeviceList))
-        self.horizontalHeader().setStyleSheet("QHeaderView::section{background:skyblue;}")
+        # self.horizontalHeader().setStyleSheet("QHeaderView::section{background:skyblue;}")
         self.setHorizontalHeaderLabels(column)
         vHeaderLabels = []
         for dev in subDeviceList:
@@ -31,14 +31,17 @@ class SubDevDataWidget(QTableWidget):
             for i in range(len(subDeviceList)):
                 self.subDeviceList[i].valueChanged.connect(self.onDevAttrValueChanged)
                 item = QTableWidgetItem() # 位置
+                item.setForeground(Qt.white)
                 item.setTextAlignment(Qt.AlignHCenter)
                 item.setText(str(subDeviceList[i].currentPos))
                 self.setItem(i, 0, item)
                 item = QTableWidgetItem() # 上限
+                item.setForeground(Qt.white)
                 item.setTextAlignment(Qt.AlignHCenter)
                 item.setText(str(subDeviceList[i].upLimitedPos))
                 self.setItem(i, 1, item)
                 item = QTableWidgetItem() # 下限
+                item.setForeground(Qt.white)
                 item.setTextAlignment(Qt.AlignHCenter)
                 item.setText(str(subDeviceList[i].downLimitedPos))
                 self.setItem(i, 2, item)
@@ -57,6 +60,7 @@ class SubDevDataWidget(QTableWidget):
             print(str(e))
         # attribute setting, read code...
         self.setFrameShape(QFrame.NoFrame)
+        self.setSelectionMode(QAbstractItemView.NoSelection)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)

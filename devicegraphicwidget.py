@@ -53,7 +53,7 @@ class GraphicWidget(QFrame):
     def enterEvent(self, *args, **kwargs):
         self.graphicWidgetIndex.emit(self.devNameLabel.text())
 
-class DeviceGraphicWidget(QWidget):
+class DeviceGraphicWidget(QFrame):
     showDeviceInformation = pyqtSignal(str)
     sendDataToTcp = pyqtSignal(str, int, list) # name, id, messageTypeId, action, data
     def __init__(self, subDevList=[], parent=None):
@@ -89,6 +89,7 @@ class DeviceGraphicWidget(QWidget):
                 column += 1
                 count += 1
             widget = QWidget()
+            widget.setStyleSheet("background-color:transparent")
             widget.setLayout(layout)
             self.scrollArea.setWidget(widget)
             self.sendDevToInfoScreen()
@@ -157,6 +158,9 @@ class DeviceGraphicWidget(QWidget):
             print("onUpdateDeviceState", str(e))
 
     def showEvent(self, QShowEvent):
-        li = [TcpServer.Call, TcpServer.SetScreen, {}]
-        self.sendDataToTcp.emit(TcpServer.InfoScreen, i, li)
-        self.sendDevToInfoScreen()
+        try:
+            li = [TcpServer.Call, TcpServer.SetScreen, {}]
+            self.sendDataToTcp.emit(TcpServer.InfoScreen, 0, li)
+            self.sendDevToInfoScreen()
+        except Exception as e:
+            print("device graphic widget show event", str(e))

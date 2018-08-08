@@ -8,7 +8,7 @@ from devattr import *
 class DataBaseException(Exception):pass
 class DataBase(QObject):
     dataBaseName = "TouchScreen.db"
-    dataBaseVersion = "180715.14"
+    dataBaseVersion = "180715.15"
     DeviceInfoTable = "DeviceInfo"
     PlayInfoTable = "PlayInfo"
     SceneInfoTable = "SceneInfo"

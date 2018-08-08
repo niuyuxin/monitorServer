@@ -109,6 +109,7 @@ class SystemManagement(QDialog, ui_systemmanagementwidget.Ui_SystemManagementWid
                     networkInfo[face.humanReadableName()].append(entry.ip().toString())
                     networkInfo[face.humanReadableName()].append(entry.netmask().toString())
                 else:
+                    continue
                     networkInfo[face.humanReadableName()].append("No Ipv4")
                     networkInfo[face.humanReadableName()].append("")
         return networkInfo

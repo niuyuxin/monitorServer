@@ -51,12 +51,13 @@ class DeviceInfoWidget(QWidget):
         try:
             width = qApp.desktop().screenGeometry().width()
             height = qApp.desktop().screenGeometry().height()
-            if QCursor.pos().x() + self.frameGeometry().width() > width:
-                self.move(QCursor.pos() - QPoint(self.frameGeometry().width(), self.frameGeometry().height()))
-            elif QCursor.pos().y() + self.frameGeometry().height() > height:
-                self.move(QCursor.pos()-QPoint(self.frameGeometry().width(), self.frameGeometry().height()))
-            else:
-                self.move(QCursor.pos())
+            moveWidth = QCursor.pos().x()
+            moveHeight = QCursor.pos().y()
+            if moveWidth + self.frameGeometry().width() > width:
+                moveWidth = moveWidth - self.frameGeometry().width()
+            if moveHeight + self.frameGeometry().height() > height:
+                moveHeight = moveHeight - self.frameGeometry().height()
+            self.move(moveWidth, moveHeight)
         except Exception as e:
             print(str(e))
     # def focusInEvent(self, QFocusEvent):

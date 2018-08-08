@@ -9,5 +9,13 @@
     <file>images/login-account.png</file>
     <file>images/login-password.png</file>
     <file>images/login-pushbutton-background.png</file>
+    <file>images/title.png</file>
+    <file>images/settingbuttonup.png</file>
+    <file>images/settingbuttondown.png</file>
+    <file>images/switchwidgetup.png</file>
+    <file>images/switchwidgetdown.png</file>
+    <file>images/ctrlbuttondown.png</file>
+    <file>images/ctrlbuttonup.png</file>
+
   </qresource>
 </RCC>

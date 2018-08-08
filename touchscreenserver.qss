@@ -1,18 +1,38 @@
 
-
-QPushButton { /* kjk */
-    font-size: 15px;
-    font-weight: bold;
-    font-family: "Snell Roundhand";
-    color: blue;
-
-    border-width: 5px;
-    /* border-color: gray; */
-    /* border-style: solid; */
-    /* border-radius: 10px; */
+QFrame#titleFrame {
+    border-image:url(:/images/images/title.png);
+    min-height: 75
 }
+QFrame#ctrlFrame, QFrame#emptyFrame {
+    min-width:50
+}
+MainWindow {
+    background-color: #0b0f1a
+}
+QTableWidget {
+    foreground-color: white;
+    background: #131723;
+    alternate-background: #3A3A3C;
+}
+/*
+QHeaderView::section{
+    background: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(80, 80, 80, 255), stop:1 rgba(30, 30, 30, 255));
+    color: rgb(240, 240, 240);
+    padding-left: 4px;
+    border: 1px solid #C07010;
+    alternate-background-color:rgb(48,51,55);
+}*/
+QHeaderView::section{
+    background: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(80, 80, 80, 255), stop:1 rgba(30, 30, 30, 255));
+    color: rgb(240, 240, 240);
+    padding-left: 4px;
+    border: 1px solid black;
+    alternate-background-color:rgb(48,51,55);
+}
+QTableView QTableCornerButton::section {
+    background-color: #0b0f1a;
+ }
 
-QPushButton:hover{ background-color: white }
 
 DeviceInfo{background-color: white}
 
@@ -66,4 +86,99 @@ QLabel#serverLabel{
 }
 QLabel#plcLabel{
     background-color: cyan
+}
+
+QPushButton#organizedPlayPushButton,
+QPushButton#netFramePushButton,
+QPushButton#systemManagementPushButton,
+QPushButton#helpPushButton,
+QPushButton#exitPushButton {
+    color: white;
+    width: 170;
+    height: 83;
+    font-size: 15px;
+    border:2px solid;
+    border-image:url(:/images/images/ctrlbuttonup.png);
+    border-top-left-radius:8px;
+    border-top-right-radius:8px;
+    border-bottom-left-radius:8px;
+    border-bottom-right-radius:8px
+}
+QPushButton#organizedPlayPushButton:pressed,
+QPushButton#netFramePushButton:pressed,
+QPushButton#systemManagementPushButton:pressed,
+QPushButton#helpPushButton:pressed,
+QPushButton#exitPushButton:pressed {
+    color: black;
+    border-image:url(:/images/images/ctrlbuttondown.png);
+
+}
+QPushButton#organizedPlayPushButton:hover,
+QPushButton#netFramePushButton:hover,
+QPushButton#systemManagementPushButton:hover,
+QPushButton#helpPushButton:hover,
+QPushButton#exitPushButton:hover {
+    color: black;
+    border-image:url(:/images/images/ctrlbuttondown.png);
+
+}
+QLabel#modalLabel {
+    color:white;
+    font-size: 20px;
+}
+QLabel#displayMethodLabel {
+    width: 99;
+    min-height: 65;
+    color: white;
+    background-color: #131723
+}
+QPushButton#dataShowingPushButton,
+QPushButton#graphicShowingPushButton,
+QPushButton#autoRunningPushButton{
+    color: white;
+    width: 99;
+    height: 65;
+    font-size: 15px;
+    border:2px solid;
+    border-image:url(:/images/images/switchwidgetup.png);
+    border-top-left-radius:8px;
+    border-top-right-radius:8px;
+    border-bottom-left-radius:8px;
+    border-bottom-right-radius:8px
+}
+QPushButton#dataShowingPushButton:pressed,
+QPushButton#graphicShowingPushButton:pressed,
+QPushButton#autoRunningPushButton:pressed {
+    color: black;
+    border-image:url(:/images/images/switchwidgetdown.png);
+
+}
+QPushButton#dataShowingPushButton:hover,
+QPushButton#graphicShowingPushButton:hover,
+QPushButton#autoRunningPushButton:hover {
+    color: black;
+    border-image:url(:/images/images/switchwidgetdown.png);
+}
+QLabel {
+    color:white;
+    font-size:15px;
+}
+DeviceInfoWidget {
+    background-color: transparent
+}
+QScrollBar {
+    background-color:transparent
+}
+SystemManagement {
+    background-color:black
+}
+QTabWidget:pane {
+    border-width: 0;
+    background: black;
+}
+QScrollArea {
+    background-color: black;
+}
+QScrollArea::corner {
+    background-color: transparent
 }

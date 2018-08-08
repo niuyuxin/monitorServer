@@ -18,7 +18,7 @@ from plcsocket import *
 from devattr import *
 import collections
 
-class MainWindow(QWidget, ui_mainwindow.Ui_Form):
+class MainWindow(QFrame, ui_mainwindow.Ui_Form):
     plcSocketManagement = pyqtSignal(int)
     getMonitorDevice = pyqtSignal(str, list)
     getPlaysInfo = pyqtSignal()
@@ -91,7 +91,7 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
         self.netFramePushButton.clicked.connect(self.onNetFramePushButtonClicked)
 
     def onRtcTimeout(self):
-        self.timeLabel.setText(QDateTime.currentDateTime().toString("yyyy-MM-dd hh:mm:ss"))
+        self.timeLabel.setText(QDateTime.currentDateTime().toString("yyyy-MM-dd dddd hh:mm:ss"))
 
     @pyqtSlot(str, list)
     def onTcpServerGetAllSubDev(self, monitorName, subDev):
@@ -137,6 +137,7 @@ class MainWindow(QWidget, ui_mainwindow.Ui_Form):
             self.showWidgetInContentWidget(widget=self.devDataWidget)
     def onGraphicShowingPushButtonClicked(self):
         self.showWidgetInContentWidget(widget=self.devGraphicWidget)
+
 
     def onAutoRunningPushButtonClicked(self):
         self.showWidgetInContentWidget(widget=self.devProgramWidget)
