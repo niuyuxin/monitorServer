@@ -39,6 +39,7 @@ class MainWindow(QFrame, ui_mainwindow.Ui_Form):
         self.rtc.timeout.connect(self.onRtcTimeout)
         self.onRtcTimeout()
         self.rtc.start(1000)
+        self.versionLabel.setText(self.getVersion())
         # create mysql database
         self.dataBase = DataBase()
         self.dataBase.getAllDevices(DevAttr.monitorSubDevDict, DevAttr.devAttrList)
@@ -71,6 +72,7 @@ class MainWindow(QFrame, ui_mainwindow.Ui_Form):
         self.tcpServer.updateDeviceState.connect(self.devGraphicWidget.onUpdateDeviceState)
         self.tcpServer.updateParaSetting.connect(self.onTcpServerUpdateSetting)
         self.tcpServer.operationalCtrl.connect(self.onTcpServerOperationalCtrl)
+        self.tcpServer.devConnectingInfo.connect(self.onTcpServerGetDevConnectingInfo)
         self.tcpServer.speedSet.connect(self.onTcpServerSpeedSet)
         self.sendDataToTcp.connect(self.tcpServer.onDataToSend)
         self.tcpServerThread.start()
@@ -91,7 +93,7 @@ class MainWindow(QFrame, ui_mainwindow.Ui_Form):
         self.netFramePushButton.clicked.connect(self.onNetFramePushButtonClicked)
 
     def onRtcTimeout(self):
-        self.timeLabel.setText(QDateTime.currentDateTime().toString("yyyy-MM-dd dddd hh:mm:ss"))
+        self.timeLabel.setText(QDateTime.currentDateTime().toString("yyyy/MM/dd dddd hh:mm:ss"))
 
     @pyqtSlot(str, list)
     def onTcpServerGetAllSubDev(self, monitorName, subDev):
@@ -213,3 +215,20 @@ class MainWindow(QFrame, ui_mainwindow.Ui_Form):
     @pyqtSlot(int, dict)
     def onTcpServerSpeedSet(self, sec, content):
         DevAttr.singleCtrlSpeed[sec] = content["Value"]
+
+    def getVersion(self):
+        return "Version {}.{}.{}".format(sys.version_info[0], sys.version_info[1], sys.version_info[2])
+
+    @pyqtSlot(dict)
+    def onTcpServerGetDevConnectingInfo(self, info):
+        devIsConnecting = False
+        if isinstance(info, dict):
+            for name, id in info.items():
+                if name is not None:
+                    devIsConnecting = True
+                    break
+        if devIsConnecting:
+            self.internetLabel.setText(self.tr("设备已连接"))
+        else:
+            self.internetLabel.setText(self.tr("无设备连接"))
+

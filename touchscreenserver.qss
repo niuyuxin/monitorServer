@@ -160,8 +160,15 @@ QPushButton#autoRunningPushButton:hover {
     border-image:url(:/images/images/switchwidgetdown.png);
 }
 QLabel {
-    color:white;
     font-size:15px;
+}
+QLabel#timeLabel,
+QLabel#plcStateLabel,
+QLabel#internetLabel,
+QLabel#databaseLabel,
+QLabel#versionLabel
+{
+    color:white
 }
 DeviceInfoWidget {
     background-color: transparent

@@ -17,6 +17,7 @@ class TcpServer(QObject):
     updateParaSetting = pyqtSignal(int, dict)
     operationalCtrl = pyqtSignal(int, dict)
     speedSet = pyqtSignal(int, dict)
+    devConnectingInfo = pyqtSignal(dict)
     Call = 2
     CallResult = 3
     CallError = 4
@@ -63,6 +64,7 @@ class TcpServer(QObject):
             print("socket accpet ", socketDict)
             b = QByteArray(bytes(r"Hello, New tcpSocket... [socket IpV4 = {}]".format(socket.peerAddress().toString()), encoding="UTF-8"))
             socket.write(b)
+            socket.waitForBytesWritten()
 
     @pyqtSlot()
     def onSocketDisconnect(self):
@@ -75,6 +77,7 @@ class TcpServer(QObject):
                 print("Delete socket: ", socket)
             count += 1
         socket.deleteLater()
+        self.getDevConnectingInfo(self.socketList)
 
     @pyqtSlot()
     def onReadyToRead(self):
@@ -102,12 +105,14 @@ class TcpServer(QObject):
                                 socketDict[TcpServer.MonitorId] = int(dataDict.get(TcpServer.MonitorId))
                                 socketDict[TcpServer.MonitorDeviceCount] = dataDict.get(TcpServer.MonitorDeviceCount)
                                 socketDict[TcpServer.MonitorName] = dataDict.get(TcpServer.MonitorName)
+                                self.getDevConnectingInfo(self.socketList)
                                 message = [TcpServer.CallResult, dataJson[1], dataJson[2], {}]
                                 socket.write(bytes(json.dumps(message, ensure_ascii='UTF-8'), encoding='utf-8')+b'\0')
                                 socket.waitForBytesWritten()
                             else:
                                 socket.disconnectFromHost()
-                        elif len(socketDict[TcpServer.MonitorDevice]) != socketDict[TcpServer.MonitorDeviceCount]:
+                        elif (socketDict[TcpServer.MonitorName] == TcpServer.TouchScreen) and \
+                            len(socketDict[TcpServer.MonitorDevice]) != socketDict[TcpServer.MonitorDeviceCount]:
                             if dataJson[2] == TcpServer.UpdateDevice:
                                 if isinstance(dataJson[3], dict) and isinstance(dataJson[3][TcpServer.MonitorDevice], list):
                                     socketDict[TcpServer.MonitorDevice].extend(dataJson[3][TcpServer.MonitorDevice])
@@ -191,3 +196,9 @@ class TcpServer(QObject):
             if dev.devName == devName:
                 return [dev.targetPos, dev.upLimitedPos, dev.downLimitedPos, dev.ctrlWord]
         return []
+
+    def getDevConnectingInfo(self, socketList):
+        connectingDev = {}
+        for socketDict in socketList:
+            connectingDev[socketDict[TcpServer.MonitorName]] = socketDict[TcpServer.MonitorId]
+        self.devConnectingInfo.emit(connectingDev)
