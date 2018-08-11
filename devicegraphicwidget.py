@@ -158,6 +158,7 @@ class DeviceGraphicWidget(QFrame):
             print("onUpdateDeviceState", str(e))
 
     def showEvent(self, QShowEvent):
+        self.setFocus()
         try:
             li = [TcpServer.Call, TcpServer.SetScreen, {}]
             self.sendDataToTcp.emit(TcpServer.InfoScreen, 0, li)

@@ -14,9 +14,9 @@ class Ui_organizedPlayDialog(object):
         organizedPlayDialog.resize(687, 503)
         self.verticalLayout = QtWidgets.QVBoxLayout(organizedPlayDialog)
         self.verticalLayout.setObjectName("verticalLayout")
-        self.tipsLabel = QtWidgets.QLabel(organizedPlayDialog)
-        self.tipsLabel.setObjectName("tipsLabel")
-        self.verticalLayout.addWidget(self.tipsLabel)
+        self.programTipsLabel = QtWidgets.QLabel(organizedPlayDialog)
+        self.programTipsLabel.setObjectName("programTipsLabel")
+        self.verticalLayout.addWidget(self.programTipsLabel)
         self.contentFrame = QtWidgets.QFrame(organizedPlayDialog)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
@@ -107,7 +107,7 @@ class Ui_organizedPlayDialog(object):
     def retranslateUi(self, organizedPlayDialog):
         _translate = QtCore.QCoreApplication.translate
         organizedPlayDialog.setWindowTitle(_translate("organizedPlayDialog", "编场"))
-        self.tipsLabel.setText(_translate("organizedPlayDialog", "tips ..."))
+        self.programTipsLabel.setText(_translate("organizedPlayDialog", "tips ..."))
         self.playGroupBox.setTitle(_translate("organizedPlayDialog", "剧目名称"))
         self.label.setText(_translate("organizedPlayDialog", "场景数量："))
         self.label_2.setText(_translate("organizedPlayDialog", "上次修改时间："))

@@ -16,7 +16,7 @@ from systemmanagement import *
 from devicenetgraphic import *
 from plcsocket import *
 from devattr import *
-import collections
+from analogdetection import *
 
 class MainWindow(QFrame, ui_mainwindow.Ui_Form):
     plcSocketManagement = pyqtSignal(int)
@@ -83,11 +83,16 @@ class MainWindow(QFrame, ui_mainwindow.Ui_Form):
         self.plcSocketManagement.connect(self.plcSocket.onTcpSocketManagement)
         self.plcSocketThread.started.connect(self.plcSocket.initTcpSocket)
         self.plcSocketThread.start()
-
+        # analog detection
+        self.analogDetection = AnalogDetection()
+        self.analogDetectionThread = QThread()
+        self.analogDetection.moveToThread(self.analogDetectionThread)
+        self.analogDetectionThread.started.connect(self.analogDetection.init)
+        self.analogDetectionThread.start()
         # push button signal and slots
         self.dataShowingPushButton.clicked.connect(self.onDataShowingPushButtonClicked)
         self.graphicShowingPushButton.clicked.connect(self.onGraphicShowingPushButtonClicked)
-        self.autoRunningPushButton.clicked.connect(self.onAutoRunningPushButtonClicked)
+        self.autoRunningPushButton.clicked.connect(self.changeToProgramMode)
         self.organizedPlayPushButton.clicked.connect(self.onOrganizedPlayPushButtonClicked)
         self.systemManagementPushButton.clicked.connect(self.onSystemManagementPushButtonClicked)
         self.netFramePushButton.clicked.connect(self.onNetFramePushButtonClicked)
@@ -135,14 +140,17 @@ class MainWindow(QFrame, ui_mainwindow.Ui_Form):
         self.showWidgetInContentWidget(widget=self.devDataWidget)
 
     def onDataShowingPushButtonClicked(self):
+        DevAttr.OperationMode = DevAttr.SingleMode
         if self.devDataWidget is not None:
             self.showWidgetInContentWidget(widget=self.devDataWidget)
     def onGraphicShowingPushButtonClicked(self):
+        DevAttr.OperationMode = DevAttr.SingleMode
         self.showWidgetInContentWidget(widget=self.devGraphicWidget)
 
-
-    def onAutoRunningPushButtonClicked(self):
-        self.showWidgetInContentWidget(widget=self.devProgramWidget)
+    def changeToProgramMode(self):
+        if Config.Debug:
+            DevAttr.OperationMode = DevAttr.ProgramMode
+            self.showWidgetInContentWidget(widget=self.devProgramWidget)
 
     def onOrganizedPlayPushButtonClicked(self):
         try:

@@ -15,7 +15,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QLabel" name="tipsLabel">
+    <widget class="QLabel" name="programTipsLabel">
      <property name="text">
       <string>tips ...</string>
      </property>

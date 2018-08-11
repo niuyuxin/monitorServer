@@ -3,6 +3,8 @@
 import  sys
 from PyQt5.QtCore import *
 import base64
+import platform
+from devattr import *
 
 def getFunctionName():
     return sys._getframe().f_back.f_code.co_name
@@ -12,6 +14,7 @@ class Config(QObject):
     PlcIpStr = "PlcIp"
     PlcPortStr = "PlcPort"
     SettingsName = "touchScreenServer.ini"
+    Debug = False
     def __init__(self, parent = None):
         super().__init__(parent)
         set = QSettings(Config.SettingsName, QSettings.IniFormat)
@@ -29,6 +32,9 @@ class Config(QObject):
             self.cryptoSetValue("root", "123456", set)
             set.endGroup()
             set.sync()
+
+        if (platform.uname()[0], platform.uname()[2]) == ('Windows', '10'):
+            Config.Debug = True
     @staticmethod
     def value(key):
         set = QSettings(Config.SettingsName, QSettings.IniFormat)

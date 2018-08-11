@@ -9,8 +9,8 @@ from PyQt5.QtGui import *
 from database import DataBase
 from tcpserver import *
 from ui import ui_deviceinfo
-import  collections
-import json
+import collections
+
 
 class DeviceInfo(QFrame, ui_deviceinfo.Ui_DeviceInfo):
     def __init__(self, name, parent=None):
@@ -27,6 +27,9 @@ class DevProgramWidget(QWidget):
     sendDataToTcp = pyqtSignal(str, int, list) # name, id, messageTypeId, action, data
     def __init__(self, parent = None):
         super().__init__(parent)
+        self.currentScene = 0
+        self.isProgramRunning = False
+        self.setFocusPolicy(Qt.WheelFocus)
         self.dataBase = QSqlDatabase.addDatabase("QSQLITE", "DeviceAutoRunningWidgetConnection")
         self.dataBase.setDatabaseName(DataBase.dataBaseName)
         self.dataBase.setUserName("root")
@@ -35,13 +38,17 @@ class DevProgramWidget(QWidget):
             print("OrganizedPlay database opened failure")
         self.scenes = collections.OrderedDict()
         self.playNameLabel = QLabel("剧目名称")
+        self.playNameLabel.setObjectName("playNameLabel")
         self.playNameLabel.setAlignment(Qt.AlignHCenter)
         self.sceneNameLabel = QLabel("场次名称")
+        self.sceneNameLabel.setObjectName("sceneNameLabel")
         self.sceneNameLabel.setAlignment(Qt.AlignHCenter)
         self.prevPushButton = QPushButton("<<<")
         self.nextPushButton = QPushButton(">>>")
         self.sceneIndexCount = 0
         self.sceneIndexLabel = QLabel("1/1")
+        self.sceneIndexLabel.setObjectName("sceneIndexLabel")
+        # self.sceneIndexLabel.setAlignment(Qt.AlignHCenter)
         self.buttonLayout = QHBoxLayout()
         self.buttonLayout.addWidget(self.prevPushButton)
         self.buttonLayout.addWidget(self.sceneIndexLabel)
@@ -76,7 +83,7 @@ class DevProgramWidget(QWidget):
         self.showInfoScreen()
 
     def showScenes(self, scenesNumber):
-        if self.scenes:
+        if self.scenes :
             index = 0
             for item in self.scenes.items():
                 if index == scenesNumber:
@@ -96,6 +103,7 @@ class DevProgramWidget(QWidget):
             devWidget = QWidget()
             devWidget.setLayout(devGridLayout)
             self.devScrollArea.setWidget(devWidget)
+            self.devScrollArea.setFocusPolicy(Qt.NoFocus)
             self.sceneIndexLabel.setText("{}/{}".format(scenesNumber + 1, len(self.scenes)))
         else:
             self.sceneIndexLabel.setText(self.tr("无场次"))
@@ -117,6 +125,7 @@ class DevProgramWidget(QWidget):
         self.showInfoScreen()
 
     def showEvent(self, QShowEvent):
+        self.setFocus()
         for i in range(4):
             li = [TcpServer.Call, TcpServer.ForbiddenDevice, {"Enable":True}]
             self.sendDataToTcp.emit("TouchScreen", i, li)
@@ -125,9 +134,31 @@ class DevProgramWidget(QWidget):
         self.showInfoScreen()
 
     def hideEvent(self, QHideEvent):
+        self.currentScene = 0
+        self.isProgramRunning = False
         for i in range(4):
             li = [TcpServer.Call, TcpServer.ForbiddenDevice, {"Enable":False}]
             self.sendDataToTcp.emit("TouchScreen", i, li)
+
+    def keyPressEvent(self, QKeyEvent):
+        key = QKeyEvent.key()
+        if key == Qt.Key_Space:
+            if not len(self.scenes):
+                QMessageBox.warning(self, "Warning", self.tr("请选择要运行的剧目"), QMessageBox.Ok)
+            else:
+                if self.isProgramRunning:
+                    self.isProgramRunning = False
+                    print("stop running")
+                else:
+                    self.isProgramRunning = True
+                    self.programRunning(self.scenes)
+        elif key == Qt.Key_Left:
+            self.prevPushButton.animateClick()
+        elif key == Qt.Key_Right:
+            self.nextPushButton.animateClick()
+
+    def programRunning(self, scenes):
+        print("running", scenes)
 
     def onTestTimerTimeout(self):pass
         # self.hideInfoScreen()

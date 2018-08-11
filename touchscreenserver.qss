@@ -14,14 +14,6 @@ QTableWidget {
     background: #131723;
     alternate-background: #3A3A3C;
 }
-/*
-QHeaderView::section{
-    background: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(80, 80, 80, 255), stop:1 rgba(30, 30, 30, 255));
-    color: rgb(240, 240, 240);
-    padding-left: 4px;
-    border: 1px solid #C07010;
-    alternate-background-color:rgb(48,51,55);
-}*/
 QHeaderView::section{
     background: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(80, 80, 80, 255), stop:1 rgba(30, 30, 30, 255));
     color: rgb(240, 240, 240);
@@ -166,10 +158,14 @@ QLabel#timeLabel,
 QLabel#plcStateLabel,
 QLabel#internetLabel,
 QLabel#databaseLabel,
-QLabel#versionLabel
+QLabel#versionLabel,
+QLabel#sceneNameLabel,
+QLabel#playNameLabel,
+QLabel#sceneIndexLabel
 {
-    color:white
+    color:white;
 }
+
 DeviceInfoWidget {
     background-color: transparent
 }

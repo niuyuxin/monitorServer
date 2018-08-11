@@ -23,7 +23,7 @@ class PlcSocket(QObject):
         self.tcpSocket.error.connect(self.onTcpSocketError)
         self.connectTimer = QTimer(self)
         self.connectTimer.timeout.connect(self.connectServer, Qt.DirectConnection)
-        self.connectTimer.start(1000)
+        # self.connectTimer.start(1000)
         self.updateTimer = QTimer(self)
         self.updateTimer.timeout.connect(self.callReturn)
         self.updateTimer.start(1000)
@@ -128,10 +128,13 @@ class PlcSocket(QObject):
         :param dev: 要获取的设备
         :return: 返回 速度、目标位置、控制字、上软限、下软限
         """
-        if dev.section in DevAttr.singleCtrlSpeed.keys():
-            speed = DevAttr.singleCtrlSpeed[dev.section]
+        if DevAttr.OperationMode == DevAttr.SingleMode:
+            if dev.section in DevAttr.singleCtrlSpeed.keys():
+                speed = DevAttr.singleCtrlSpeed[dev.section]
+            else:
+                speed = 0
         else:
-            speed = 0
+            speed = dev.programSetSpeed
         targetPos = dev.targetPos
         cWord = self.getDevCtrlWord(dev)
         upLimit = dev.upLimitedPos

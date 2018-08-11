@@ -9,6 +9,7 @@ from config import *
 from rcc import rc_touchscreenresource
 from ui import ui_editingdevicedialog
 from database import *
+from devattr import *
 import random
 import collections
 
@@ -211,6 +212,7 @@ class EditingDevAction(QDialog, ui_editingdevicedialog.Ui_EditingDevDialog):
             self.reject()
     def onCancelPushButtonClicked(self):
         self.reject()
+
     def removeDev(self, selfIndex):
         try:
             sqlQuery = QSqlQuery(self.dataBase)
@@ -218,7 +220,11 @@ class EditingDevAction(QDialog, ui_editingdevicedialog.Ui_EditingDevDialog):
                                       .format(v=selfIndex))
         except Exception as e:
             print(str(e))
+
     def insertDev(self, selfIndex, parentIndex, deviceIndex):
+        for dev in DevAttr.devAttrList:
+            if dev.devName == deviceIndex:
+                dev.programId = selfIndex
         sqlQuery = QSqlQuery(self.dataBase)
         if sqlQuery.exec_("""SELECT selfIndex FROM DeviceSetInfo WHERE selfIndex='{}'""".format(selfIndex)):
             if not sqlQuery.next():
@@ -258,6 +264,10 @@ class EditingDevAction(QDialog, ui_editingdevicedialog.Ui_EditingDevDialog):
             if sqlQuery.next():
                 posSpeed = (sqlQuery.value(0), sqlQuery.value(1))
             if posSpeed != (pos, speed):
+                for dev in DevAttr.devAttrList:
+                    if dev.programId == id:
+                        dev.programSetSpeed = speed
+                        dev.programSetPos = pos
                 if not sqlQuery.exec_("""UPDATE DeviceSetInfo SET targetPos='{pos}', devSpeed='{speed}' WHERE selfIndex='{id}'"""
                                .format(pos=pos, speed=speed, id=id)):
                     QMessageBox.warning(self, "Warning", self.tr("更新位置和速度信息失败，请重试!"), QMessageBox.Ok)
@@ -562,7 +572,7 @@ class OrganizedPlay(QDialog, ui_organizedplaydialog.Ui_organizedPlayDialog):
                                          .format(sId=sceneIndex))
                 ret = sqlQuery.exec_("""DELETE FROM PlayInfo WHERE selfIndex = '{sId}'""" \
                                      .format(sId=playsIndex))
-                self.tipsLabel.setText(self.tr("剧目") + "'{}'".format(currentWidget.text()) + self.tr("已删除"))
+                self.programTipsLabel.setText(self.tr("剧目") + "'{}'".format(currentWidget.text()) + self.tr("已删除"))
                 del currentWidget
 
     def searchPlays(self):
@@ -576,13 +586,13 @@ class OrganizedPlay(QDialog, ui_organizedplaydialog.Ui_organizedPlayDialog):
         return plays
 
     def onExportPushButtonClicked(self):
-        self.tipsLabel.setText(getFunctionName())
+        self.programTipsLabel.setText(getFunctionName())
 
     def onActivePushButtonClicked(self):
         widget = self.contentListWidget.currentItem()
         if widget:
             self.playsActive.emit(widget.selfId, widget.text())
-            self.tipsLabel.setText(self.tr("剧目") + "'{}'".format(widget.text())+self.tr("已激活"))
+            self.programTipsLabel.setText(self.tr("剧目") + "'{}'".format(widget.text())+self.tr("已激活"))
         else:
             QMessageBox.warning(self, "Waring", self.tr("请选中要激活的剧目"), QMessageBox.Ok)
 

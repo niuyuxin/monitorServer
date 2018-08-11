@@ -15,6 +15,9 @@ class DevAttr(QObject):
     devAttrList = []
     singleCtrlOperation = {} # 单控运行标志
     singleCtrlSpeed = {}
+    SingleMode = 0
+    ProgramMode = 1
+    OperationMode = 0
     def __init__(self, id, name, parent=None):
         super().__init__(parent)
         self.currentPos = 0
@@ -26,6 +29,9 @@ class DevAttr(QObject):
         self.downLimitedPos = 0
         self.targetPos = 0
         self.zeroPos = 0
+        self.programSetPos = 0
+        self.programSetSpeed = 0
+        self.programId = ""
         self.section = -1
 
     def getStateWord(self, pos):

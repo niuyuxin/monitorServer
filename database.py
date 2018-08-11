@@ -144,6 +144,9 @@ class DataBase(QObject):
     def changeDeviceSet(self):pass
     def getAllDevices(self, subDevDict, detailInfoList):
         sqlQuery = QSqlQuery(self.dataBase)
+        setDevice = {}
+        if sqlQuery.exec_("""SELECT deviceIndex, selfIndex, targetPos, devSpeed FROM DeviceSetInfo"""):
+            setDevice[sqlQuery.value(0)] = [sqlQuery.value(1), sqlQuery.value(2), sqlQuery.value(3)]
         if sqlQuery.exec_("SELECT * FROM DeviceInfo"):
             rec = sqlQuery.record()
             nameCol = rec.indexOf("devName")
@@ -152,6 +155,7 @@ class DataBase(QObject):
             upperLimitCol = rec.indexOf("upLimitedPos")
             lowerLimitCol = rec.indexOf("downLimitedPos")
             targetPosCol = rec.indexOf("targetPos")
+            devSpeedCol = rec.indexOf("devSpeed")
             while sqlQuery.next():
                 devGroup = sqlQuery.value(groupCol)
                 plcId = sqlQuery.value(plcCol)
@@ -159,6 +163,7 @@ class DataBase(QObject):
                 upperLimit = sqlQuery.value(upperLimitCol)
                 lowerLimit = sqlQuery.value(lowerLimitCol)
                 targetPos = sqlQuery.value(targetPosCol)
+                devSpeed = sqlQuery.value(devSpeedCol)
                 if devGroup not in subDevDict.keys():
                     subDevDict[devGroup] = [[plcId, name]]
                 else:
@@ -167,6 +172,12 @@ class DataBase(QObject):
                 dev.targetPos = targetPos if targetPos else 0
                 dev.upLimitedPos = upperLimit if upperLimit else 0
                 dev.downLimitedPos = lowerLimit if lowerLimit else 0
+                dev.devSpeed = devSpeed
+                if name in setDevice.keys():
+                    dev.programId = setDevice[name][0]
+                    dev.programSetPos = setDevice[name][1]
+                    dev.programSetSpeed = setDevice[name][2]
+
                 detailInfoList.append(dev)
     @pyqtSlot(str, list)
     def onCreateDevicesInfo(self, monitorName, devices):
