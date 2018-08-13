@@ -38,7 +38,7 @@ class DataBase(QObject):
             for t in tables:
                 if t != "sqlite_sequence":
                     sqlQuery.exec_("DROP TABLE {table}".format(table=t))
-        self.createDatabaseTable()
+            self.createDatabaseTable()
     def createDatabaseTable(self):
         sqlQuery = QSqlQuery(self.dataBase)
         sqlQuery.exec_("""CREATE TABLE VersionInfo (
@@ -144,9 +144,9 @@ class DataBase(QObject):
     def changeDeviceSet(self):pass
     def getAllDevices(self, subDevDict, detailInfoList):
         sqlQuery = QSqlQuery(self.dataBase)
-        setDevice = {}
-        if sqlQuery.exec_("""SELECT deviceIndex, selfIndex, targetPos, devSpeed FROM DeviceSetInfo"""):
-            setDevice[sqlQuery.value(0)] = [sqlQuery.value(1), sqlQuery.value(2), sqlQuery.value(3)]
+        # setDevice = {} Todo:更新编场信息的位置和速度
+        # if sqlQuery.exec_("""SELECT selfIndex, deviceIndex, targetPos, devSpeed FROM DeviceSetInfo"""):
+        #     setDevice[sqlQuery.value(0)] = [sqlQuery.value(1), sqlQuery.value(2), sqlQuery.value(3)]
         if sqlQuery.exec_("SELECT * FROM DeviceInfo"):
             rec = sqlQuery.record()
             nameCol = rec.indexOf("devName")
@@ -173,11 +173,10 @@ class DataBase(QObject):
                 dev.upLimitedPos = upperLimit if upperLimit else 0
                 dev.downLimitedPos = lowerLimit if lowerLimit else 0
                 dev.devSpeed = devSpeed
-                if name in setDevice.keys():
-                    dev.programId = setDevice[name][0]
-                    dev.programSetPos = setDevice[name][1]
-                    dev.programSetSpeed = setDevice[name][2]
-
+                # if name in setDevice.keys():
+                #     dev.programId = setDevice[name][0]
+                #     dev.programSetPos = setDevice[name][1]
+                #     dev.programSetSpeed = setDevice[name][2]
                 detailInfoList.append(dev)
     @pyqtSlot(str, list)
     def onCreateDevicesInfo(self, monitorName, devices):

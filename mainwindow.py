@@ -24,6 +24,7 @@ class MainWindow(QFrame, ui_mainwindow.Ui_Form):
     getPlaysInfo = pyqtSignal()
     sendDataToTcp = pyqtSignal(str, int, list) # name, id, messageTypeId, action, data
     savingParaSetting = pyqtSignal(str, int, int, int)
+    analogCtrl = pyqtSignal(int, int)
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
@@ -63,6 +64,7 @@ class MainWindow(QFrame, ui_mainwindow.Ui_Form):
         self.contentFrameLayout.addWidget(self.devProgramWidget)
         self.contentWidgetList.append(self.devProgramWidget)
         self.devProgramWidget.sendDataToTcp.connect(self.sendDataToTcp)
+        self.devProgramWidget.analogCtrl.connect(self.analogCtrl)
         self.showAllDeviceInWidget()
         # create tcp server, main function...
         self.tcpServer = TcpServer()
@@ -88,6 +90,7 @@ class MainWindow(QFrame, ui_mainwindow.Ui_Form):
         self.analogDetectionThread = QThread()
         self.analogDetection.moveToThread(self.analogDetectionThread)
         self.analogDetectionThread.started.connect(self.analogDetection.init)
+        self.analogCtrl.connect(self.analogDetection.onAnalogCtrl)
         self.analogDetectionThread.start()
         # push button signal and slots
         self.dataShowingPushButton.clicked.connect(self.onDataShowingPushButtonClicked)
@@ -239,4 +242,12 @@ class MainWindow(QFrame, ui_mainwindow.Ui_Form):
             self.internetLabel.setText(self.tr("设备已连接"))
         else:
             self.internetLabel.setText(self.tr("无设备连接"))
+
+    def closeEvent(self, *args, **kwargs):
+        login = AccountLogin()
+        if login.exec_():
+            args[0].accept()
+        else:
+            args[0].ignore()
+
 

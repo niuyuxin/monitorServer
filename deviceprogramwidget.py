@@ -10,7 +10,7 @@ from database import DataBase
 from tcpserver import *
 from ui import ui_deviceinfo
 import collections
-
+from analogdetection import *
 
 class DeviceInfo(QFrame, ui_deviceinfo.Ui_DeviceInfo):
     def __init__(self, name, parent=None):
@@ -25,6 +25,7 @@ class DeviceInfo(QFrame, ui_deviceinfo.Ui_DeviceInfo):
         self.style().drawPrimitive(QStyle.PE_Widget, opt, p, self)
 class DevProgramWidget(QWidget):
     sendDataToTcp = pyqtSignal(str, int, list) # name, id, messageTypeId, action, data
+    analogCtrl = pyqtSignal(int, int)
     def __init__(self, parent = None):
         super().__init__(parent)
         self.currentScene = 0
@@ -148,10 +149,12 @@ class DevProgramWidget(QWidget):
             else:
                 if self.isProgramRunning:
                     self.isProgramRunning = False
+                    self.analogCtrl.emit(AnalogDetection.GPIO_STOP, 0)
                     print("stop running")
                 else:
                     self.isProgramRunning = True
                     self.programRunning(self.scenes)
+                    self.analogCtrl.emit(AnalogDetection.GPIO_RUN, 0)
         elif key == Qt.Key_Left:
             self.prevPushButton.animateClick()
         elif key == Qt.Key_Right:
@@ -168,12 +171,15 @@ class DevProgramWidget(QWidget):
         try:
             count = 0
             infoList = []
-            begin = 0 if self.sceneIndexCount < 4 else self.sceneIndexCount - 3
+            if self.sceneIndexCount < TcpServer.InfoScreenSectionSize:
+                begin = 0
+            else:
+                begin = self.sceneIndexCount - TcpServer.InfoScreenSectionSize + 1
             for item in self.scenes.items():
                 if count >= begin:
                     dev = []
                     for d in item[1]:
-                        t = (d, 0, 0, True, False)
+                        t = (d, 0, 0, True, False) # 速度， 位置，上软限， 下软限
                         dev.append(t)
                     info = {"Modal":"Program",
                             "Running": False,
@@ -183,7 +189,7 @@ class DevProgramWidget(QWidget):
                             "Device":dev}
                     infoList.append(info)
                 count += 1
-            while len(infoList) < 4:
+            while len(infoList) < TcpServer.InfoScreenSectionSize:
                 info = {"Modal": "Program",
                         "Running": False,
                         "Section": count,
@@ -192,7 +198,7 @@ class DevProgramWidget(QWidget):
                         "Device": []}
                 infoList.append(info)
                 count += 1
-            for i in range(4):
+            for i in range(TcpServer.InfoScreenSectionSize):
                 li = [TcpServer.Call, TcpServer.SetScreenValue, infoList[i]]
                 self.sendDataToTcp.emit(TcpServer.InfoScreen, 0, li) # name, id, messageTypeId, action, data
         except Exception as e:

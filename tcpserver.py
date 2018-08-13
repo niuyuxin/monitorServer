@@ -36,7 +36,9 @@ class TcpServer(QObject):
     MonitorId = "MonitorId"
     MonitorRecBuf = "RecBuf"
     MonitorDeviceCount = "MonitorDeviceCount"
+    MonitorSectionSize = "MonitorSectionSize"
     UpdateDevice = "UpdateDevice"
+    InfoScreenSectionSize = 0
     def __init__(self):
         super().__init__()
         self.dataBase =  self.openDatabaseForName("TcpServerConnection")
@@ -103,8 +105,11 @@ class TcpServer(QObject):
                             dataDict = dataJson[3]
                             if isinstance(dataDict, dict):
                                 socketDict[TcpServer.MonitorId] = int(dataDict.get(TcpServer.MonitorId))
-                                socketDict[TcpServer.MonitorDeviceCount] = dataDict.get(TcpServer.MonitorDeviceCount)
                                 socketDict[TcpServer.MonitorName] = dataDict.get(TcpServer.MonitorName)
+                                if socketDict[TcpServer.MonitorName] == TcpServer.TouchScreen:
+                                    socketDict[TcpServer.MonitorDeviceCount] = dataDict.get(TcpServer.MonitorDeviceCount)
+                                else:
+                                    TcpServer.InfoScreenSectionSize = dataDict.get(TcpServer.MonitorSectionSize)*2
                                 self.getDevConnectingInfo(self.socketList)
                                 message = [TcpServer.CallResult, dataJson[1], dataJson[2], {}]
                                 socket.write(bytes(json.dumps(message, ensure_ascii='UTF-8'), encoding='utf-8')+b'\0')
