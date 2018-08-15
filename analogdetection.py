@@ -13,15 +13,15 @@ class SusiFanControl(Structure):
     _fields_=[('mode',c_int),('pwm',c_int),('autoFan',AutoFunType)]
 
 class AnalogDetection(QObject):
-    GPIO_STOP_LED = 3 # 停止程控运行
-    GPIO_RUN_LED = 2 # 程控启动灯
+    GPIO_STOP_LED = 2 # 停止程控运行
+    GPIO_RUN_LED = 3 # 程控启动灯
     # 数据通信
-    GPIO_RUN = 6 # 启动 程控
-    GPIO_STOP = 5 # 停止 程控
+    GPIO_RUN = 7 # 启动 程控
+    GPIO_STOP = 4 # 停止 程控
     GPIO_PROGRAM = 1  # 程控模式
     GPIO_MAINT = 0 # 维保模式
-    GPIO_TURN_NEXT =  7 # 下一幕
-    GPIO_TURN_PREV = 4 # 上一幕
+    GPIO_TURN_NEXT =  6 # 下一幕
+    GPIO_TURN_PREV = 5 # 上一幕
     KEY_DOWN = 1
     KEY_UP = 0
     LED_ON = 1

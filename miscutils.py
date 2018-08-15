@@ -43,7 +43,7 @@ class DeviceInfoWidget(QWidget):
         self.layout.addLayout(self.devCompilingLayout)
         self.setLayout(self.layout)
         self.setFixedSize(self.sizeHint())
-        self.setWindowFlags((self.windowFlags()&~Qt.WindowMinimizeButtonHint)|Qt.Window)
+        self.setWindowFlags((self.windowFlags()&~Qt.WindowMinimizeButtonHint)|Qt.Window) # Qt.ToolTip
         self.setFocusPolicy(Qt.WheelFocus)
         self.setFocus(Qt.MenuBarFocusReason)
         self.hide()
