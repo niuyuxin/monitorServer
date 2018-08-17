@@ -15,8 +15,9 @@ class DevAttr(QObject):
     devAttrList = []
     singleCtrlOperation = {} # 单控运行标志
     singleCtrlSpeed = {}
-    SingleMode = 0
-    ProgramMode = 1
+    SingleModeD = 0
+    SingleModeG = 1
+    ProgramMode = 2
     OperationMode = 0
     def __init__(self, id, name, parent=None):
         super().__init__(parent)

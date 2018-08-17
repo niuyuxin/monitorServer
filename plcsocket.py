@@ -128,7 +128,7 @@ class PlcSocket(QObject):
         :param dev: 要获取的设备
         :return: 返回 速度、目标位置、控制字、上软限、下软限
         """
-        if DevAttr.OperationMode == DevAttr.SingleMode:
+        if DevAttr.OperationMode != DevAttr.ProgramMode:
             if dev.section in DevAttr.singleCtrlSpeed.keys():
                 speed = DevAttr.singleCtrlSpeed[dev.section]
             else:

@@ -18,17 +18,19 @@ class AnalogDetection(QObject):
     # 数据通信
     GPIO_RUN = 7 # 启动 程控
     GPIO_STOP = 4 # 停止 程控
+    GPIO_SINGLE = -1 # 单控模式
     GPIO_PROGRAM = 1  # 程控模式
     GPIO_MAINT = 0 # 维保模式
     GPIO_TURN_NEXT =  6 # 下一幕
     GPIO_TURN_PREV = 5 # 上一幕
-    KEY_DOWN = 1
-    KEY_UP = 0
+    KEY_DOWN = 0
+    KEY_UP = 1
     LED_ON = 1
     LED_OFF = 0
     GPIO_IN = 1
     GPIO_OUT = 0
     GPIOState = pyqtSignal(int, int)
+    ControlModeSwitch = pyqtSignal(int)
     def __init__(self, parent=None):
         super().__init__(parent)
 
@@ -50,6 +52,13 @@ class AnalogDetection(QObject):
             self.SusiCtrl.SusiGPIOSetDirection(AnalogDetection.GPIO_MAINT, 1, AnalogDetection.GPIO_IN)
             self.SusiCtrl.SusiGPIOSetDirection(AnalogDetection.GPIO_TURN_NEXT, 1, AnalogDetection.GPIO_IN)
             self.SusiCtrl.SusiGPIOSetDirection(AnalogDetection.GPIO_TURN_PREV, 1, AnalogDetection.GPIO_IN)
+        value = inputValueType()
+        self.CtrlMode = -1  # 0 维保模式 1程控模式 -1单控模式
+        for gpio in [AnalogDetection.GPIO_PROGRAM, AnalogDetection.GPIO_MAINT]:
+            self.SusiCtrl.SusiGPIOGetLevel(gpio, 1, byref(value))
+            if value.val == AnalogDetection.KEY_DOWN:
+                self.CtrlMode = gpio
+                self.ControlModeSwitch.emit(gpio)
         self.gpioState = {0:[],1:[],2:[],3:[],4:[],5:[],6:[],7:[]}
         self.timer = QTimer()
         self.timer.timeout.connect(self.onTimerTimeout)
@@ -77,19 +86,33 @@ class AnalogDetection(QObject):
                                AnalogDetection.KEY_DOWN,
                                AnalogDetection.KEY_DOWN,
                                AnalogDetection.KEY_DOWN]:
-                    self.onGPIOState(item[0], True)
-                    self.GPIOState.emit(item[0], True)
+                    self.onGPIOState(item[0], AnalogDetection.KEY_DOWN)
+                    self.GPIOState.emit(item[0], AnalogDetection.KEY_DOWN)
+                elif item[1] == [AnalogDetection.KEY_DOWN,
+                                AnalogDetection.KEY_UP,
+                                 AnalogDetection.KEY_UP,
+                                 AnalogDetection.KEY_UP]:
+                    self.onGPIOState(item[0], AnalogDetection.KEY_UP)
+                    self.GPIOState.emit(item[0], AnalogDetection.KEY_UP)
         except Exception as e:
             print("on timer timeout ", str(e))
 
     @pyqtSlot(int, int)
     def onGPIOState(self, gpio, state):
-        if gpio == AnalogDetection.GPIO_RUN:
-            self.SusiCtrl.SusiGPIOSetLevel(AnalogDetection.GPIO_RUN_LED, 1, AnalogDetection.LED_ON)
-            self.SusiCtrl.SusiGPIOSetLevel(AnalogDetection.GPIO_STOP_LED, 1, AnalogDetection.LED_OFF)
-        elif gpio == AnalogDetection.GPIO_STOP:
-            self.SusiCtrl.SusiGPIOSetLevel(AnalogDetection.GPIO_RUN_LED, 1, AnalogDetection.LED_OFF)
-            self.SusiCtrl.SusiGPIOSetLevel(AnalogDetection.GPIO_STOP_LED, 1, AnalogDetection.LED_ON)
+        if gpio in [AnalogDetection.GPIO_PROGRAM, AnalogDetection.GPIO_MAINT]:
+            if state == AnalogDetection.KEY_DOWN:
+                self.CtrlMode = gpio
+            else:
+                self.CtrlMode = -1
+            self.ControlModeSwitch.emit(self.CtrlMode)
+        if self.CtrlMode == AnalogDetection.GPIO_PROGRAM and\
+                state == AnalogDetection.KEY_DOWN:
+            if gpio == AnalogDetection.GPIO_RUN:
+                self.SusiCtrl.SusiGPIOSetLevel(AnalogDetection.GPIO_RUN_LED, 1, AnalogDetection.LED_ON)
+                self.SusiCtrl.SusiGPIOSetLevel(AnalogDetection.GPIO_STOP_LED, 1, AnalogDetection.LED_OFF)
+            elif gpio == AnalogDetection.GPIO_STOP:
+                self.SusiCtrl.SusiGPIOSetLevel(AnalogDetection.GPIO_RUN_LED, 1, AnalogDetection.LED_OFF)
+                self.SusiCtrl.SusiGPIOSetLevel(AnalogDetection.GPIO_STOP_LED, 1, AnalogDetection.LED_ON)
         print(gpio, state)
 
     @pyqtSlot(int, int)

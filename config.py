@@ -15,7 +15,6 @@ class Config(QObject):
     PlcPortStr = "PlcPort"
     SettingsName = "touchScreenServer.ini"
     Debug = False
-
     def __init__(self, parent = None):
         super().__init__(parent)
         set = QSettings(Config.SettingsName, QSettings.IniFormat)

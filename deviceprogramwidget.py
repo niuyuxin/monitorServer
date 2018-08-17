@@ -149,12 +149,12 @@ class DevProgramWidget(QWidget):
             else:
                 if self.isProgramRunning:
                     self.isProgramRunning = False
-                    self.analogCtrl.emit(AnalogDetection.GPIO_STOP, 0)
+                    self.analogCtrl.emit(AnalogDetection.GPIO_STOP, AnalogDetection.KEY_DOWN)
                     print("stop running")
                 else:
                     self.isProgramRunning = True
                     self.programRunning(self.scenes)
-                    self.analogCtrl.emit(AnalogDetection.GPIO_RUN, 0)
+                    self.analogCtrl.emit(AnalogDetection.GPIO_RUN, AnalogDetection.KEY_DOWN)
         elif key == Qt.Key_Left:
             self.prevPushButton.animateClick()
         elif key == Qt.Key_Right:

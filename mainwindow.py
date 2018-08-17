@@ -25,6 +25,8 @@ class MainWindow(QFrame, ui_mainwindow.Ui_Form):
     sendDataToTcp = pyqtSignal(str, int, list) # name, id, messageTypeId, action, data
     savingParaSetting = pyqtSignal(str, int, int, int)
     analogCtrl = pyqtSignal(int, int)
+    # ControlModeSwitch = pyqtSignal(int)
+    # PhysicalGPIOState = pyqtSignal(int, int)
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
@@ -91,6 +93,8 @@ class MainWindow(QFrame, ui_mainwindow.Ui_Form):
         self.analogDetection.moveToThread(self.analogDetectionThread)
         self.analogDetectionThread.started.connect(self.analogDetection.init)
         self.analogCtrl.connect(self.analogDetection.onAnalogCtrl)
+        self.analogDetection.GPIOState.connect(self.onPhysicalGPIOState)
+        self.analogDetection.ControlModeSwitch.connect(self.onControlModeSwitch)
         self.analogDetectionThread.start()
         # push button signal and slots
         self.dataShowingPushButton.clicked.connect(self.onDataShowingPushButtonClicked)
@@ -143,17 +147,32 @@ class MainWindow(QFrame, ui_mainwindow.Ui_Form):
         self.showWidgetInContentWidget(widget=self.devDataWidget)
 
     def onDataShowingPushButtonClicked(self):
-        DevAttr.OperationMode = DevAttr.SingleMode
+        DevAttr.OperationMode = DevAttr.SingleModeD
         if self.devDataWidget is not None:
             self.showWidgetInContentWidget(widget=self.devDataWidget)
     def onGraphicShowingPushButtonClicked(self):
-        DevAttr.OperationMode = DevAttr.SingleMode
+        DevAttr.OperationMode = DevAttr.SingleModeG
         self.showWidgetInContentWidget(widget=self.devGraphicWidget)
 
     def changeToProgramMode(self):
         if Config.Debug:
             DevAttr.OperationMode = DevAttr.ProgramMode
             self.showWidgetInContentWidget(widget=self.devProgramWidget)
+
+    @pyqtSlot(int)
+    def onControlModeSwitch(self, mode):
+        if mode == AnalogDetection.GPIO_PROGRAM:
+            self.dataShowingPushButton.setEnabled(False)
+            self.graphicShowingPushButton.setEnabled(False)
+            DevAttr.OperationMode = DevAttr.ProgramMode
+            self.showWidgetInContentWidget(widget=self.devProgramWidget)
+        elif mode == AnalogDetection.GPIO_SINGLE:
+            self.dataShowingPushButton.setEnabled(True)
+            self.graphicShowingPushButton.setEnabled(True)
+            if DevAttr.OperationMode == DevAttr.SingleModeD:
+                self.onDataShowingPushButtonClicked()
+            else:
+                self.onGraphicShowingPushButtonClicked()
 
     def onOrganizedPlayPushButtonClicked(self):
         try:
@@ -250,4 +269,13 @@ class MainWindow(QFrame, ui_mainwindow.Ui_Form):
         else:
             args[0].ignore()
 
-
+    def onPhysicalGPIOState(self, gpio, state):
+        if state == AnalogDetection.KEY_DOWN:
+            focusWidget = QApplication.focusWidget()
+            if focusWidget is None: return
+            if gpio == AnalogDetection.GPIO_TURN_NEXT:
+                tabKey = QKeyEvent(QEvent.KeyPress, Qt.Key_Right, Qt.NoModifier, "right")
+                QApplication.sendEvent(focusWidget, tabKey)
+            elif  gpio == AnalogDetection.GPIO_TURN_PREV:
+                tabKey = QKeyEvent(QEvent.KeyPress, Qt.Key_Left, Qt.NoModifier, "left")
+                QApplication.sendEvent(focusWidget, tabKey)
