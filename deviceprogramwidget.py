@@ -159,6 +159,17 @@ class DevProgramWidget(QWidget):
             self.prevPushButton.animateClick()
         elif key == Qt.Key_Right:
             self.nextPushButton.animateClick()
+        elif key == Qt.Key_F5:
+            if not len(self.scenes):
+                QMessageBox.warning(self, "Warning", self.tr("请选择要运行的剧目"), QMessageBox.Ok)
+            else:
+                self.isProgramRunning = True
+                self.programRunning(self.scenes)
+                self.analogCtrl.emit(AnalogDetection.GPIO_RUN, AnalogDetection.KEY_DOWN)
+        elif key == Qt.Key_F6:
+            self.isProgramRunning = False
+            self.analogCtrl.emit(AnalogDetection.GPIO_STOP, AnalogDetection.KEY_DOWN)
+            print("stop running")
 
     def programRunning(self, scenes):
         print("running", scenes)

@@ -94,7 +94,8 @@ class MainWindow(QFrame, ui_mainwindow.Ui_Form):
         self.analogDetectionThread.started.connect(self.analogDetection.init)
         self.analogCtrl.connect(self.analogDetection.onAnalogCtrl)
         self.analogDetection.GPIOState.connect(self.onPhysicalGPIOState)
-        self.analogDetection.ControlModeSwitch.connect(self.onControlModeSwitch)
+        if not Config.Debug:
+            self.analogDetection.ControlModeSwitch.connect(self.onControlModeSwitch)
         self.analogDetectionThread.start()
         # push button signal and slots
         self.dataShowingPushButton.clicked.connect(self.onDataShowingPushButtonClicked)
@@ -169,10 +170,7 @@ class MainWindow(QFrame, ui_mainwindow.Ui_Form):
         elif mode == AnalogDetection.GPIO_SINGLE:
             self.dataShowingPushButton.setEnabled(True)
             self.graphicShowingPushButton.setEnabled(True)
-            if DevAttr.OperationMode == DevAttr.SingleModeD:
-                self.onDataShowingPushButtonClicked()
-            else:
-                self.onGraphicShowingPushButtonClicked()
+            self.onDataShowingPushButtonClicked()
 
     def onOrganizedPlayPushButtonClicked(self):
         try:
@@ -278,4 +276,10 @@ class MainWindow(QFrame, ui_mainwindow.Ui_Form):
                 QApplication.sendEvent(focusWidget, tabKey)
             elif  gpio == AnalogDetection.GPIO_TURN_PREV:
                 tabKey = QKeyEvent(QEvent.KeyPress, Qt.Key_Left, Qt.NoModifier, "left")
+                QApplication.sendEvent(focusWidget, tabKey)
+            elif gpio == AnalogDetection.GPIO_RUN:
+                tabKey = QKeyEvent(QEvent.KeyPress, Qt.Key_F5, Qt.NoModifier, "f5")
+                QApplication.sendEvent(focusWidget, tabKey)
+            elif gpio == AnalogDetection.GPIO_STOP:
+                tabKey = QKeyEvent(QEvent.KeyPress, Qt.Key_F6, Qt.NoModifier, "f6")
                 QApplication.sendEvent(focusWidget, tabKey)
