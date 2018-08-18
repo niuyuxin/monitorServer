@@ -29,6 +29,8 @@ class AnalogDetection(QObject):
     LED_OFF = 0
     GPIO_IN = 1
     GPIO_OUT = 0
+    SYS_FUN1_ADDR = 0x22001
+    SYS_FUN2_ADDR = 0x23001
     GPIOState = pyqtSignal(int, int)
     ControlModeSwitch = pyqtSignal(int)
     def __init__(self, parent=None):
@@ -39,11 +41,9 @@ class AnalogDetection(QObject):
         self.SusiCtrl = CDLL("Susi4.dll")
         self.fanCtrl = SusiFanControl()
         self.fanCtrl.mode = 2
-        self.fanCtrl.pwm = 0
         self.count = 0
         if self.SusiCtrl.SusiLibInitialize() == 0:
             print("initialize success")
-            self.SusiCtrl.SusiFanControlSetConfig(0x22001, byref(self.fanCtrl))
             self.SusiCtrl.SusiGPIOSetDirection(AnalogDetection.GPIO_RUN_LED, 1, AnalogDetection.GPIO_OUT)
             self.SusiCtrl.SusiGPIOSetDirection(AnalogDetection.GPIO_STOP_LED, 1, AnalogDetection.GPIO_OUT)
             self.SusiCtrl.SusiGPIOSetDirection(AnalogDetection.GPIO_RUN, 1, AnalogDetection.GPIO_IN)
@@ -60,15 +60,16 @@ class AnalogDetection(QObject):
                 self.CtrlMode = gpio
                 self.ControlModeSwitch.emit(gpio)
         self.gpioState = {0:[],1:[],2:[],3:[],4:[],5:[],6:[],7:[]}
-        self.timer = QTimer()
+        self.timer = QTimer(self)
         self.timer.timeout.connect(self.onTimerTimeout)
         self.timer.start(10)
 
     def onTimerTimeout(self):
         try:
-            if self.count >= 100: self.count = 0
-            self.fanCtrl.pwd = self.count
-            self.SusiCtrl.SusiFanControlSetConfig(0x22001, byref(self.fanCtrl))
+            self.fanCtrl.pwm = (self.count%200)//2
+            self.count += 1
+            self.SusiCtrl.SusiFanControlSetConfig(AnalogDetection.SYS_FUN1_ADDR, byref(self.fanCtrl))
+            self.SusiCtrl.SusiFanControlSetConfig(AnalogDetection.SYS_FUN2_ADDR, byref(self.fanCtrl))
             value = inputValueType()
             for gpio in range(8):
                 if gpio in (AnalogDetection.GPIO_RUN_LED, \
@@ -119,29 +120,4 @@ class AnalogDetection(QObject):
     def onAnalogCtrl(self, gpio, s):
         self.onGPIOState(gpio, s)
 
-if __name__ == '__main__':
-    SusiCtrl = CDLL("Susi4.dll")
-    SusiCtrl.SusiLibInitialize()
-    SusiCtrl.SusiGPIOSetDirection(7, 1, 1)
-    SusiCtrl.SusiGPIOSetDirection(5, 1, 0)
-    SusiCtrl.SusiGPIOSetDirection(6, 1, 0)
-    SusiCtrl.SusiGPIOSetLevel(6, 1, 1)
-    mode = 0
-    recordTime = time.time()
-    value = inputValueType()
-    while True:
-        if mode == 0:
-            SusiCtrl.SusiGPIOGetLevel(7, 1, byref(value))
-            SusiCtrl.SusiGPIOSetLevel(5, 1, value.val)
-        else:
-            SusiCtrl.SusiGPIOSetLevel(5, 1, 0)
-            time.sleep(0.3)
-            SusiCtrl.SusiGPIOSetLevel(5, 1, 1)
-            time.sleep(0.3)
-
-        if value.val == 0:
-            recordTime = time.time()
-
-        if int(time.time() - recordTime) > 3:
-            mode = not mode
 
