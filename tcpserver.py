@@ -111,7 +111,11 @@ class TcpServer(QObject):
                                 else:
                                     TcpServer.InfoScreenSectionSize = dataDict.get(TcpServer.MonitorSectionSize)*2
                                 self.getDevConnectingInfo(self.socketList)
-                                message = [TcpServer.CallResult, dataJson[1], dataJson[2], {}]
+                                info = {
+                                    "OperationMode": DevAttr.OperationMode,
+                                    "time": QDateTime.currentDateTime().toString("yyyy-MM-dd hh:mm:ss")
+                                }
+                                message = [TcpServer.CallResult, dataJson[1], dataJson[2], info]
                                 socket.write(bytes(json.dumps(message, ensure_ascii='UTF-8'), encoding='utf-8')+b'\0')
                                 socket.waitForBytesWritten()
                             else:

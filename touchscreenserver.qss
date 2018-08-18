@@ -167,7 +167,21 @@ QLabel#sceneIndexLabel
 }
 
 DeviceInfoWidget {
-    background-color: transparent
+    background-color: #0b0f1a
+}
+QLabel#deviceNameLabel,
+QLabel#deviceUpLimit,
+QLabel#deviceDownLimit,
+QLabel#deviceCurPosLabel,
+QLabel#devWarningMesLabel,
+QLabel#devCompilingLabel,
+QLabel#devCompilingInfoLabel,
+QLabel#devNameLabel,
+QLabel#speedNameLabel,
+QLabel#speedLabel,
+QLabel#deviceGraphicTipsLabel
+{
+    color: white
 }
 QScrollBar {
     background-color:transparent

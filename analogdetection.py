@@ -35,23 +35,25 @@ class AnalogDetection(QObject):
     ControlModeSwitch = pyqtSignal(int)
     def __init__(self, parent=None):
         super().__init__(parent)
-
+        self.isAdvantechBoard = False
     @pyqtSlot()
     def init(self):
         self.SusiCtrl = CDLL("Susi4.dll")
+        if self.SusiCtrl.SusiLibInitialize() != 0:
+            return
+        self.isAdvantechBoard = True
         self.fanCtrl = SusiFanControl()
         self.fanCtrl.mode = 2
         self.count = 0
-        if self.SusiCtrl.SusiLibInitialize() == 0:
-            print("initialize success")
-            self.SusiCtrl.SusiGPIOSetDirection(AnalogDetection.GPIO_RUN_LED, 1, AnalogDetection.GPIO_OUT)
-            self.SusiCtrl.SusiGPIOSetDirection(AnalogDetection.GPIO_STOP_LED, 1, AnalogDetection.GPIO_OUT)
-            self.SusiCtrl.SusiGPIOSetDirection(AnalogDetection.GPIO_RUN, 1, AnalogDetection.GPIO_IN)
-            self.SusiCtrl.SusiGPIOSetDirection(AnalogDetection.GPIO_STOP, 1, AnalogDetection.GPIO_IN)
-            self.SusiCtrl.SusiGPIOSetDirection(AnalogDetection.GPIO_PROGRAM, 1, AnalogDetection.GPIO_IN)
-            self.SusiCtrl.SusiGPIOSetDirection(AnalogDetection.GPIO_MAINT, 1, AnalogDetection.GPIO_IN)
-            self.SusiCtrl.SusiGPIOSetDirection(AnalogDetection.GPIO_TURN_NEXT, 1, AnalogDetection.GPIO_IN)
-            self.SusiCtrl.SusiGPIOSetDirection(AnalogDetection.GPIO_TURN_PREV, 1, AnalogDetection.GPIO_IN)
+        print("Initialize Advantech Board Success!")
+        self.SusiCtrl.SusiGPIOSetDirection(AnalogDetection.GPIO_RUN_LED, 1, AnalogDetection.GPIO_OUT)
+        self.SusiCtrl.SusiGPIOSetDirection(AnalogDetection.GPIO_STOP_LED, 1, AnalogDetection.GPIO_OUT)
+        self.SusiCtrl.SusiGPIOSetDirection(AnalogDetection.GPIO_RUN, 1, AnalogDetection.GPIO_IN)
+        self.SusiCtrl.SusiGPIOSetDirection(AnalogDetection.GPIO_STOP, 1, AnalogDetection.GPIO_IN)
+        self.SusiCtrl.SusiGPIOSetDirection(AnalogDetection.GPIO_PROGRAM, 1, AnalogDetection.GPIO_IN)
+        self.SusiCtrl.SusiGPIOSetDirection(AnalogDetection.GPIO_MAINT, 1, AnalogDetection.GPIO_IN)
+        self.SusiCtrl.SusiGPIOSetDirection(AnalogDetection.GPIO_TURN_NEXT, 1, AnalogDetection.GPIO_IN)
+        self.SusiCtrl.SusiGPIOSetDirection(AnalogDetection.GPIO_TURN_PREV, 1, AnalogDetection.GPIO_IN)
         value = inputValueType()
         self.CtrlMode = -1  # 0 维保模式 1程控模式 -1单控模式
         for gpio in [AnalogDetection.GPIO_PROGRAM, AnalogDetection.GPIO_MAINT]:
@@ -118,6 +120,7 @@ class AnalogDetection(QObject):
 
     @pyqtSlot(int, int)
     def onAnalogCtrl(self, gpio, s):
-        self.onGPIOState(gpio, s)
+        if self.isAdvantechBoard:
+            self.onGPIOState(gpio, s)
 
 
