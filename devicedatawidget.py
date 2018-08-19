@@ -14,6 +14,7 @@ class SubDevDataWidget(QTableWidget):
 
     def __init__(self, subDeviceList = [], column=[], parent=None):
         super().__init__(parent)
+        self.setSelectionMode(QAbstractItemView.NoSelection)
         self.subDeviceList = subDeviceList
         self.devInformationWidget = DeviceInfoWidget(self)
         self.showDeviceInfo.connect(self.devInformationWidget.onDeviceInformation)
@@ -46,9 +47,10 @@ class SubDevDataWidget(QTableWidget):
                 item.setText(str(subDeviceList[i].downLimitedPos))
                 self.setItem(i, 2, item)
                 upCheckBox = QCheckBox("上限")
+                upCheckBox.setEnabled(False)
                 downCheckBox = QCheckBox("下限")
+                downCheckBox.setEnabled(False)
                 widget = QWidget()
-                widget.setDisabled(True)
                 layout = QHBoxLayout()
                 layout.addWidget(upCheckBox)
                 layout.addWidget(downCheckBox)

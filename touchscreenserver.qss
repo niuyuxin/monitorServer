@@ -199,3 +199,6 @@ QScrollArea {
 QScrollArea::corner {
     background-color: transparent
 }
+QCheckBox{
+    color: white
+}
