@@ -105,8 +105,12 @@ class AnalogDetection(QObject):
         if gpio in [AnalogDetection.GPIO_PROGRAM, AnalogDetection.GPIO_MAINT]:
             if state == AnalogDetection.KEY_DOWN:
                 self.CtrlMode = gpio
+                if self.CtrlMode == AnalogDetection.GPIO_PROGRAM:
+                    self.SusiCtrl.SusiGPIOSetLevel(AnalogDetection.GPIO_STOP_LED, 1, AnalogDetection.LED_ON)
             else:
                 self.CtrlMode = -1
+                self.SusiCtrl.SusiGPIOSetLevel(AnalogDetection.GPIO_RUN_LED, 1, AnalogDetection.LED_OFF)
+                self.SusiCtrl.SusiGPIOSetLevel(AnalogDetection.GPIO_STOP_LED, 1, AnalogDetection.LED_OFF)
             self.ControlModeSwitch.emit(self.CtrlMode)
         if self.CtrlMode == AnalogDetection.GPIO_PROGRAM and\
                 state == AnalogDetection.KEY_DOWN:

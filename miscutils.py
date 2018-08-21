@@ -8,6 +8,7 @@ class DeviceInfoWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle(self.tr("设备详细信息"))
+        self.setWindowFlags(Qt.FramelessWindowHint)
         self.setFocus(Qt.MouseFocusReason)
         self.setMouseTracking(True)
         self.deviceNameLabel = QLabel("***")

@@ -35,16 +35,18 @@ class DeviceContainer(QFrame):
                 secLayout = QVBoxLayout()
                 secLayout.setContentsMargins(30, 0, 0, 0)
                 self.mainLayout.addLayout(secLayout)
-            pLabel = QLabel(dev)
-            pLabel.setTextFormat(Qt.PlainText)
-            pLabel.setFrameShape(QFrame.Box)
-            pLabel.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+            devLabel = QLabel(dev)
+            devLabel.setTextFormat(Qt.PlainText)
+            devLabel.setFrameShape(QFrame.Box)
+            devLabel.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
             sLabel = QLabel("电机")
+            sLabel.setObjectName("motorLabel")
+            sLabel.setEnabled(False)
             sLabel.setFrameShape(QFrame.Box)
-            pLabel.setMaximumSize(100, 100)
-            sLabel.setMaximumSize(40,40)
+            devLabel.setMaximumSize(100, 100)
+            sLabel.setMaximumSize(50,50)
             tLayout = QHBoxLayout()
-            tLayout.addWidget(pLabel)
+            tLayout.addWidget(devLabel)
             tLayout.addWidget(sLabel)
             tLayout.setContentsMargins(0, 0, 0, 0)
             secLayout.addLayout(tLayout)
@@ -52,7 +54,7 @@ class DeviceContainer(QFrame):
             if colCount >= colCountNumber:
                 colCount = 0
                 rowCount = 0
-            self.devLabelList.append(pLabel)
+            self.devLabelList.append(devLabel)
         self.mainLayout.setContentsMargins(0,DeviceContainer.TOPMARGIN,0,0)
         self.setLayout(self.mainLayout)
     def stateChanged(self, devName, state, working):
@@ -68,7 +70,7 @@ class DeviceContainer(QFrame):
         widgetRect = self.contentsRect()
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing, True)
-        painter.setPen(Qt.black);
+        painter.setPen(Qt.red);
         for count in range(self.mainLayout.count()):
             groupLayout = self.mainLayout.itemAt(count)
             rect = groupLayout.contentsRect()
@@ -78,7 +80,7 @@ class DeviceContainer(QFrame):
             for gCount in range(groupLayout.count()):
                 labelLayout = groupLayout.itemAt(gCount)
                 labelRect = labelLayout.contentsRect()
-                painter.setPen(Qt.black);
+                painter.setPen(Qt.red);
                 if labelLayout.count() == 2:
                     labelA = labelLayout.itemAt(0).widget()
                     labelB = labelLayout.itemAt(1).widget()
@@ -99,18 +101,19 @@ class DeviceNetGraphic(QDialog):
         self.setWindowTitle("Graphic...")
         self.titleLabel = QLabel("Graphic.... add some words in here")
         self.titleLabel.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Maximum)
-        self.serverLabel = QLabel("Server Picture", self)
+        self.serverLabel = QLabel(self)
         self.serverLabel.setObjectName("serverLabel")
         self.serverLabel.setAlignment(Qt.AlignHCenter|Qt.AlignVCenter)
         self.serverLabel.setFrameShape(QFrame.StyledPanel)
         self.serverLabel.setFixedSize(100, 100)
-        self.plcLabel = QLabel("Plc Picture", self)
+        self.plcLabel = QLabel(self)
         self.plcLabel.setObjectName("plcLabel")
         self.plcLabel.setFrameShape(QFrame.StyledPanel)
         self.plcLabel.setAlignment(Qt.AlignHCenter|Qt.AlignVCenter)
         self.plcLabel.setFixedSize(80, 80)
         self.devFrame = DeviceContainer(devList)
         self.exitPushButton = QPushButton("退出")
+        self.exitPushButton.setObjectName("exitPushButton")
         self.exitPushButton.clicked.connect(self.close)
         self.mainLayout = QVBoxLayout()
         self.mainLayout.addWidget(self.titleLabel)
@@ -120,19 +123,19 @@ class DeviceNetGraphic(QDialog):
         self.mainLayout.addWidget(self.exitPushButton, alignment=Qt.AlignRight)
         self.mainLayout.setSpacing(40)
         self.setLayout(self.mainLayout)
-        self.setWindowFlags(self.windowFlags() | Qt.WindowMaximizeButtonHint)
+        self.setWindowFlags(self.windowFlags() | Qt.FramelessWindowHint)
     def stateChanged(self, devName, state, working=False):
         self.devFrame.stateChanged(devName, state, working)
     def paintEvent(self, QPaintEvent):
         rect = self.geometry()
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing, True)
-        painter.setPen(Qt.black);
+        painter.setPen(Qt.red);
         painter.drawLine(QPointF(rect.width()//2, self.serverLabel.pos().y() + self.serverLabel.height()),
                          QPointF(rect.width()//2, self.plcLabel.pos().y()))
         painter.drawLine(QPointF(rect.width()//2, self.plcLabel.pos().y()+self.plcLabel.height()),
                          QPointF(rect.width()//2, self.devFrame.pos().y()))
-        painter.setPen(Qt.black)
+        painter.setPen(Qt.red)
         painter.drawLine(self.devFrame.pos().x(), self.devFrame.pos().y(),
                          self.devFrame.pos().x() + self.devFrame.width(), self.devFrame.pos().y())
 

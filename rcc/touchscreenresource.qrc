@@ -16,6 +16,7 @@
     <file>images/switchwidgetdown.png</file>
     <file>images/ctrlbuttondown.png</file>
     <file>images/ctrlbuttonup.png</file>
-
+    <file>images/device.jpg</file>
+    <file>images/siemens.jpg</file>
   </qresource>
 </RCC>

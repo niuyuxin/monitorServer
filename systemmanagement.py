@@ -43,8 +43,9 @@ class AccountLogin(QDialog):
         self.accountPasswdLineEdit.setFocus()
         # Fixme for test code
         try:
-            self.accountPasswdLineEdit.setText(Config.cryptoValue("Password"))
-            self.dialogButtonBox.button(QDialogButtonBox.Ok).animateClick()
+            pass
+            # self.accountPasswdLineEdit.setText(Config.cryptoValue("Password"))
+            # self.dialogButtonBox.button(QDialogButtonBox.Ok).animateClick()
         except Exception as e:
             print(str(e))
     def userEntry(self):

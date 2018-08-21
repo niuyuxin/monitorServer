@@ -33,23 +33,23 @@ class SubDevDataWidget(QTableWidget):
                 self.subDeviceList[i].valueChanged.connect(self.onDevAttrValueChanged)
                 item = QTableWidgetItem() # 位置
                 item.setForeground(Qt.white)
-                item.setTextAlignment(Qt.AlignHCenter)
+                item.setTextAlignment(Qt.AlignVCenter|Qt.AlignHCenter)
                 item.setText(str(subDeviceList[i].currentPos))
                 self.setItem(i, 0, item)
                 item = QTableWidgetItem() # 上限
                 item.setForeground(Qt.white)
-                item.setTextAlignment(Qt.AlignHCenter)
+                item.setTextAlignment(Qt.AlignHCenter|Qt.AlignVCenter)
                 item.setText(str(subDeviceList[i].upLimitedPos))
                 self.setItem(i, 1, item)
                 item = QTableWidgetItem() # 下限
                 item.setForeground(Qt.white)
-                item.setTextAlignment(Qt.AlignHCenter)
+                item.setTextAlignment(Qt.AlignHCenter|Qt.AlignVCenter)
                 item.setText(str(subDeviceList[i].downLimitedPos))
                 self.setItem(i, 2, item)
                 upCheckBox = QCheckBox("上限")
-                upCheckBox.setEnabled(False)
+                upCheckBox.setAttribute(Qt.WA_TransparentForMouseEvents)
                 downCheckBox = QCheckBox("下限")
-                downCheckBox.setEnabled(False)
+                downCheckBox.setAttribute(Qt.WA_TransparentForMouseEvents)
                 widget = QWidget()
                 layout = QHBoxLayout()
                 layout.addWidget(upCheckBox)
@@ -67,7 +67,7 @@ class SubDevDataWidget(QTableWidget):
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        # self.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.setMouseTracking(True)  # should turn on mouse tracking when user cell entered
         self.cellEntered.connect(self.onCellEntered)
         self.setEditTriggers(QAbstractItemView.NoEditTriggers) # set user can not change it

@@ -25,13 +25,13 @@ QTableView QTableCornerButton::section {
     background-color: #0b0f1a;
  }
 
-
 DeviceInfo{background-color: white}
 
+/*
 QLabel#inverterPicLabel {
     border-image:url(:/images/images/inverter.png);
-}
-QLabel#devPicLabel {
+}*/
+QLabel#devPicLabel{
     border-image:url(:/images/images/steeve.jpg);
 
 }
@@ -70,16 +70,16 @@ QLineEdit#passwordLineEdit{
     border-top-right-radius: 8px;
     border-bottom-right-radius: 8px;
 }
+
 DeviceNetGraphic {
-    background-color: green
+    background-color: #0b0f1a
 }
 QLabel#serverLabel{
-    background-color: yellow
+    border-image: url(:/images/images/device.jpg)
 }
 QLabel#plcLabel{
-    background-color: cyan
+    border-image: url(:/images/images/siemens.jpg)
 }
-
 QPushButton#organizedPlayPushButton,
 QPushButton#netFramePushButton,
 QPushButton#systemManagementPushButton,
@@ -201,4 +201,8 @@ QScrollArea::corner {
 }
 QCheckBox{
     color: white
+}
+QPushButton#exitPushButton {
+    min-width: 30px;
+    min-height: 20px;
 }

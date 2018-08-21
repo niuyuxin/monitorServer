@@ -207,6 +207,7 @@ class MainWindow(QFrame, ui_mainwindow.Ui_Form):
             deviceNetGraphic = DeviceNetGraphic(self.getAllDevice())
             for dev in self.getAllDevice():
                 deviceNetGraphic.stateChanged(dev, False, True)
+            deviceNetGraphic.showFullScreen()
             deviceNetGraphic.exec_()
         except Exception as e:
             print(str(e))

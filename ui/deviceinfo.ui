@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>198</width>
+    <width>208</width>
     <height>250</height>
    </rect>
   </property>
@@ -14,15 +14,8 @@
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="0">
-    <widget class="QLabel" name="inverterPicLabel">
-     <property name="text">
-      <string/>
-     </property>
-    </widget>
-   </item>
    <item row="0" column="1">
-    <widget class="QLabel" name="devNameLabel">
+    <widget class="QLabel" name="programDevNameLabel">
      <property name="text">
       <string>设备名称</string>
      </property>
@@ -81,6 +74,13 @@
        <height>80</height>
       </size>
      </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="0">
+    <widget class="QLabel" name="inverterPicLabel">
      <property name="text">
       <string/>
      </property>

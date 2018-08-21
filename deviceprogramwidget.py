@@ -16,7 +16,7 @@ class DeviceInfo(QFrame, ui_deviceinfo.Ui_DeviceInfo):
     def __init__(self, name, parent=None):
         super().__init__(parent)
         self.setupUi(self)
-        self.devNameLabel.setText(name)
+        self.programDevNameLabel.setText(name)
 
     def paintEvent(self, QPaintEvent):
         opt = QStyleOption()

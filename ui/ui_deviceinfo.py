@@ -11,17 +11,13 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_DeviceInfo(object):
     def setupUi(self, DeviceInfo):
         DeviceInfo.setObjectName("DeviceInfo")
-        DeviceInfo.resize(198, 250)
+        DeviceInfo.resize(208, 250)
         self.gridLayout = QtWidgets.QGridLayout(DeviceInfo)
         self.gridLayout.setObjectName("gridLayout")
-        self.inverterPicLabel = QtWidgets.QLabel(DeviceInfo)
-        self.inverterPicLabel.setText("")
-        self.inverterPicLabel.setObjectName("inverterPicLabel")
-        self.gridLayout.addWidget(self.inverterPicLabel, 0, 0, 1, 1)
-        self.devNameLabel = QtWidgets.QLabel(DeviceInfo)
-        self.devNameLabel.setAlignment(QtCore.Qt.AlignCenter)
-        self.devNameLabel.setObjectName("devNameLabel")
-        self.gridLayout.addWidget(self.devNameLabel, 0, 1, 1, 1)
+        self.programDevNameLabel = QtWidgets.QLabel(DeviceInfo)
+        self.programDevNameLabel.setAlignment(QtCore.Qt.AlignCenter)
+        self.programDevNameLabel.setObjectName("programDevNameLabel")
+        self.gridLayout.addWidget(self.programDevNameLabel, 0, 1, 1, 1)
         self.label_2 = QtWidgets.QLabel(DeviceInfo)
         self.label_2.setObjectName("label_2")
         self.gridLayout.addWidget(self.label_2, 1, 0, 1, 1)
@@ -48,6 +44,10 @@ class Ui_DeviceInfo(object):
         self.devPicLabel.setText("")
         self.devPicLabel.setObjectName("devPicLabel")
         self.gridLayout.addWidget(self.devPicLabel, 4, 0, 1, 2)
+        self.inverterPicLabel = QtWidgets.QLabel(DeviceInfo)
+        self.inverterPicLabel.setText("")
+        self.inverterPicLabel.setObjectName("inverterPicLabel")
+        self.gridLayout.addWidget(self.inverterPicLabel, 0, 0, 1, 1)
 
         self.retranslateUi(DeviceInfo)
         QtCore.QMetaObject.connectSlotsByName(DeviceInfo)
@@ -55,7 +55,7 @@ class Ui_DeviceInfo(object):
     def retranslateUi(self, DeviceInfo):
         _translate = QtCore.QCoreApplication.translate
         DeviceInfo.setWindowTitle(_translate("DeviceInfo", "Form"))
-        self.devNameLabel.setText(_translate("DeviceInfo", "设备名称"))
+        self.programDevNameLabel.setText(_translate("DeviceInfo", "设备名称"))
         self.label_2.setText(_translate("DeviceInfo", "速度："))
         self.label_3.setText(_translate("DeviceInfo", "位置："))
         self.label_5.setText(_translate("DeviceInfo", "方向："))

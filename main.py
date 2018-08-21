@@ -26,7 +26,7 @@ if __name__ == "__main__":
     if ret:
         mainWindow = MainWindow()
         mainWindow.setWindowTitle("MonitorServer")
-        mainWindow.show()
+        mainWindow.showFullScreen()
         # mainWindow.setEnabled(False)
         sys.exit(app.exec_())
     else:
