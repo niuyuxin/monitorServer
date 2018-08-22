@@ -22,7 +22,7 @@ class SubDevDataWidget(QTableWidget):
         self.mouseInColumn = 0
         self.setColumnCount(len(column))
         self.setRowCount(len(subDeviceList))
-        # self.horizontalHeader().setStyleSheet("QHeaderView::section{background:skyblue;}")
+        # self.verticalHeader().setMinimumHeight(100)
         self.setHorizontalHeaderLabels(column)
         vHeaderLabels = []
         for dev in subDeviceList:
@@ -30,8 +30,9 @@ class SubDevDataWidget(QTableWidget):
         self.setVerticalHeaderLabels(vHeaderLabels)
         try:  # try to create sub contents
             font = QFont(self.font())
-            font.setPointSize(15)
+            font.setPointSize(13)
             for i in range(len(subDeviceList)):
+                self.setRowHeight(i, 60)
                 self.subDeviceList[i].valueChanged.connect(self.onDevAttrValueChanged)
                 item = QTableWidgetItem() # 位置
                 item.setFont(font)
@@ -72,7 +73,7 @@ class SubDevDataWidget(QTableWidget):
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        # self.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.setMouseTracking(True)  # should turn on mouse tracking when user cell entered
         self.cellEntered.connect(self.onCellEntered)
         self.setEditTriggers(QAbstractItemView.NoEditTriggers) # set user can not change it

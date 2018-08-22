@@ -23,8 +23,7 @@ QHeaderView::section:vertical{
     border: 1px solid black;
     alternate-background-color:rgb(48,51,55);
     font-size: 15px;
-    min-width:80px;
-    text-align: center;
+    min-width:120px;
 }
 QHeaderView::section:horizontal {
     background: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(80, 80, 80, 255), stop:1 rgba(30, 30, 30, 255));
@@ -104,7 +103,7 @@ QPushButton#exitPushButton {
     color: white;
     width: 170;
     height: 83;
-    font-size: 15px;
+    font-size: 20px;
     border:2px solid;
     border-image:url(:/images/images/ctrlbuttonup.png);
     border-top-left-radius:8px;
