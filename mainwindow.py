@@ -43,6 +43,7 @@ class MainWindow(QFrame, ui_mainwindow.Ui_Form):
         self.onRtcTimeout()
         self.rtc.start(1000)
         self.versionLabel.setText(self.getVersion())
+        self.modalTextLabel.setText("单控模式")
         # create mysql database
         self.dataBase = DataBase()
         self.dataBase.getAllDevices(DevAttr.monitorSubDevDict, DevAttr.devAttrList)
@@ -151,13 +152,16 @@ class MainWindow(QFrame, ui_mainwindow.Ui_Form):
         DevAttr.OperationMode = DevAttr.SingleModeD
         if self.devDataWidget is not None:
             self.showWidgetInContentWidget(widget=self.devDataWidget)
+            self.modalTextLabel.setText("单控模式")
     def onGraphicShowingPushButtonClicked(self):
         DevAttr.OperationMode = DevAttr.SingleModeG
         self.showWidgetInContentWidget(widget=self.devGraphicWidget)
+        self.modalTextLabel.setText("单控模式")
     def changeToProgramMode(self):
         if Config.Debug:
             DevAttr.OperationMode = DevAttr.ProgramMode
             self.showWidgetInContentWidget(widget=self.devProgramWidget)
+            self.modalTextLabel.setText("程控模式")
 
     @pyqtSlot(int)
     def onControlModeSwitch(self, mode):

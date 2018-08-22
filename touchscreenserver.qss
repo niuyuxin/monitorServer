@@ -1,6 +1,6 @@
 
 QFrame#titleFrame {
-    border-image:url(:/images/images/title.png);
+    border-image:url(:/images/images/title.jpg);
     min-height: 75
 }
 QFrame#ctrlFrame, QFrame#emptyFrame {
@@ -130,7 +130,7 @@ QPushButton#exitPushButton:hover {
     border-image:url(:/images/images/ctrlbuttondown.png);
 
 }
-QLabel#modalLabel {
+QLabel#modalTextLabel {
     color:white;
     font-size: 20px;
 }
