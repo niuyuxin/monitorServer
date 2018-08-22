@@ -13,18 +13,34 @@ QTableWidget {
     /* foreground-color: white; */
     background: #131723;
     alternate-background-color: #3A3A3C;
+    gridline-color: white;
+    selection-background-color: red;
 }
-QHeaderView::section{
+QHeaderView::section:vertical{
     background: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(80, 80, 80, 255), stop:1 rgba(30, 30, 30, 255));
     color: rgb(240, 240, 240);
     padding-left: 4px;
     border: 1px solid black;
     alternate-background-color:rgb(48,51,55);
+    font-size: 15px;
+    min-width:80px;
+    text-align: center;
+}
+QHeaderView::section:horizontal {
+    background: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(80, 80, 80, 255), stop:1 rgba(30, 30, 30, 255));
+    color: rgb(240, 240, 240);
+    padding-left: 4px;
+    border: 1px solid black;
+    alternate-background-color:rgb(48,51,55);
+    min-height:50px;
+    font-size: 15px;
 }
 QTableView QTableCornerButton::section {
     background-color: #0b0f1a;
  }
-
+QCheckBox {
+    font-size: 20px;
+}
 DeviceInfo{background-color: white}
 
 /*

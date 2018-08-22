@@ -149,6 +149,7 @@ class DeviceGraphicWidget(QFrame):
                             if devInfo.devName == oldDev[0]:
                                 devInfo.clearCtrlWord(DevAttr.CW_Selected)
                                 devInfo.section = -1
+                                devInfo.valueChanged.emit(devInfo.devId, devInfo.devName)
                 self.operateDevList[sec] = devList
                 for sec in self.operateDevList.keys():
                     for dev in self.operateDevList[sec]:
@@ -157,6 +158,7 @@ class DeviceGraphicWidget(QFrame):
                                 devInfo.setCtrlWord(DevAttr.CW_Selected)
                                 devInfo.section = sec
                                 devAttrList.append(devInfo)
+                                devInfo.valueChanged.emit(devInfo.devId, devInfo.devName)
             self.showDevGraphic(devAttrList)
         except Exception as e:
             print("onUpdateDeviceState", str(e))

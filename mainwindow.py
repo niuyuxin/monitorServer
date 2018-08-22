@@ -154,7 +154,6 @@ class MainWindow(QFrame, ui_mainwindow.Ui_Form):
     def onGraphicShowingPushButtonClicked(self):
         DevAttr.OperationMode = DevAttr.SingleModeG
         self.showWidgetInContentWidget(widget=self.devGraphicWidget)
-
     def changeToProgramMode(self):
         if Config.Debug:
             DevAttr.OperationMode = DevAttr.ProgramMode
@@ -167,11 +166,14 @@ class MainWindow(QFrame, ui_mainwindow.Ui_Form):
             self.graphicShowingPushButton.setEnabled(False)
             DevAttr.OperationMode = DevAttr.ProgramMode
             self.showWidgetInContentWidget(widget=self.devProgramWidget)
+            self.modalTextLabel.setText("程控模式")
         elif mode == AnalogDetection.GPIO_SINGLE:
             self.dataShowingPushButton.setEnabled(True)
             self.graphicShowingPushButton.setEnabled(True)
             self.onDataShowingPushButtonClicked()
-
+            self.modalTextLabel.setText("单控模式")
+        else:
+            self.modalTextLabel.setText("维保模式")
     def onOrganizedPlayPushButtonClicked(self):
         try:
             organizedPlay = OrganizedPlay()

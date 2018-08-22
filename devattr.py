@@ -50,3 +50,6 @@ class DevAttr(QObject):
     def clearCtrlWord(self, pos):
         self.ctrlWord &= (~pos)
 
+    def getCtrlWord(self, pos):
+        return bool(self.ctrlWord&pos)
+

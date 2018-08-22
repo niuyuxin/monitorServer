@@ -90,7 +90,7 @@
       <item>
        <widget class="QLabel" name="plcStateLabel">
         <property name="text">
-         <string>Plc控制器版本</string>
+         <string>PLC控制器版本</string>
         </property>
        </widget>
       </item>
@@ -319,7 +319,7 @@
        </property>
        <layout class="QHBoxLayout" name="horizontalLayout_3">
         <item>
-         <widget class="QLabel" name="modalLabel">
+         <widget class="QLabel" name="modalTextLabel">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
             <horstretch>0</horstretch>

@@ -29,19 +29,24 @@ class SubDevDataWidget(QTableWidget):
             vHeaderLabels.append(dev.devName)
         self.setVerticalHeaderLabels(vHeaderLabels)
         try:  # try to create sub contents
+            font = QFont(self.font())
+            font.setPointSize(15)
             for i in range(len(subDeviceList)):
                 self.subDeviceList[i].valueChanged.connect(self.onDevAttrValueChanged)
                 item = QTableWidgetItem() # 位置
+                item.setFont(font)
                 item.setForeground(Qt.white)
                 item.setTextAlignment(Qt.AlignVCenter|Qt.AlignHCenter)
                 item.setText(str(subDeviceList[i].currentPos))
                 self.setItem(i, 0, item)
                 item = QTableWidgetItem() # 上限
+                item.setFont(font)
                 item.setForeground(Qt.white)
                 item.setTextAlignment(Qt.AlignHCenter|Qt.AlignVCenter)
                 item.setText(str(subDeviceList[i].upLimitedPos))
                 self.setItem(i, 1, item)
                 item = QTableWidgetItem() # 下限
+                item.setFont(font)
                 item.setForeground(Qt.white)
                 item.setTextAlignment(Qt.AlignHCenter|Qt.AlignVCenter)
                 item.setText(str(subDeviceList[i].downLimitedPos))
@@ -51,7 +56,7 @@ class SubDevDataWidget(QTableWidget):
                 downCheckBox = QCheckBox("下限")
                 downCheckBox.setAttribute(Qt.WA_TransparentForMouseEvents)
                 widget = QWidget()
-                layout = QHBoxLayout()
+                layout = QVBoxLayout()
                 layout.addWidget(upCheckBox)
                 layout.addWidget(downCheckBox)
                 layout.setContentsMargins(0, 0, 0, 0)
@@ -110,6 +115,16 @@ class SubDevDataWidget(QTableWidget):
                     downLimitItem.setText(str(dev.downLimitedPos))
                     upReached.setChecked(dev.getStateWord(DevAttr.SW_UpperLimit))
                     downReached.setChecked(dev.getStateWord(DevAttr.SW_LowerLimit))
+                    if dev.getCtrlWord(DevAttr.CW_Selected):
+                        posItem.setBackground(QColor(0, 128, 255))
+                        upLimitItem.setBackground(QColor(0, 128, 255))
+                        downLimitItem.setBackground(QColor(0, 128, 255))
+                        self.cellWidget(rc, 3).setStyleSheet("background-color:#0080ff;")
+                    else:
+                        posItem.setBackground(QColor(19, 23, 35))
+                        upLimitItem.setBackground(QColor(19, 23, 35))
+                        downLimitItem.setBackground(QColor(19, 23, 35))
+                        self.cellWidget(rc, 3).setStyleSheet("background-color:#131723;")
         except Exception as e:
             print("on Dev Attr value changed", str(e))
 class DevDataWidget(QWidget):
